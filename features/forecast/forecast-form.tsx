@@ -23,7 +23,7 @@ import { NEIGHBORHOODS } from "./weather";
 import { cn } from "@/lib/utils";
 
 /** Rounded white inputs on the paper surface. */
-const FIELD = "h-10.5 rounded-[14px] border-[1.5px] border-hot-line bg-white";
+const FIELD = "h-10.5 rounded-[14px] border-[1.5px] border-hot-line bg-white px-3.5";
 
 const neighborhoodItems = NEIGHBORHOODS.map((n) => ({ value: n.id, label: n.label }));
 const leaveItems = LEAVE_TIMES.map((t) => ({ value: t.id, label: `${t.label} (${t.when})` }));

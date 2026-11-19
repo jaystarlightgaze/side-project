@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Oxanium } from "next/font/google";
+import { Geist, Geist_Mono, Gowun_Dodum, Oxanium } from "next/font/google";
 import "./globals.css";
 import { AccountHeader } from "@/features/account";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,14 @@ import { cn } from "@/lib/utils";
 const geistHeading = Geist({subsets:['latin'],variable:'--font-heading'});
 
 const oxanium = Oxanium({subsets:['latin'],variable:'--font-sans'});
+
+// Soft rounded Hangul that stays crisp at small sizes. Loaded for the paper UI (`font-cute`).
+const gowunDodum = Gowun_Dodum({
+  weight: "400",
+  variable: "--font-gowun",
+  subsets: ["latin"],
+  preload: false,
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ko"
-      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", oxanium.variable, geistHeading.variable)}
+      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", oxanium.variable, geistHeading.variable, gowunDodum.variable)}
     >
       <body className="min-h-full flex flex-col">
         <AccountHeader />

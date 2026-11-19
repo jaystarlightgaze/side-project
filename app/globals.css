@@ -72,7 +72,7 @@
   --color-lilac: var(--lilac);
   --color-lilac-line: var(--lilac-line);
   --color-lilac-ink: var(--lilac-ink);
-  --font-cute: "Jua", "Cafe24 Ssurround", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-cute: var(--font-gowun), "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --font-hanja: "Nanum Myeongjo", "AppleMyungjo", "Batang", serif;
   --animate-bob: bob 2.4s ease-in-out infinite;
   --animate-wiggle: wiggle 3s ease-in-out infinite;
