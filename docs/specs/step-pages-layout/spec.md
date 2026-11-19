@@ -100,8 +100,8 @@ Blocked by: docs/specs/saju-chart-card/
 ## 범위 밖과 이유
 
 - 지난 예보와 대화 목록 페이지: forecaster-chat-memory 범위 밖과 같다. 탭 나누기 시안의 "지난 기억" 탭을 고르지 않았다.
-- 예보관 대화창 안쪽(말풍선, 입력칸)의 새 시각 디자인: 이 Spec은 대화창의 자리만 정한다. 대화창 안은 지금 모양을 그대로 쓴다.
-- 체크 상태 저장: saju-chart-card의 미룬 결정이다.
+- 예보관 대화창 안쪽(말풍선, 입력칸)의 새 시각 디자인: 이 Spec은 대화창의 자리만 정한다. 안쪽 모양은 [chat-paper-and-saved-checks](../chat-paper-and-saved-checks/spec.md)에서 다룬다.
+- 체크 상태 저장: [chat-paper-and-saved-checks](../chat-paper-and-saved-checks/spec.md)에서 다룬다.
 - 로그인 전 예보를 브라우저에 저장하기: 모델 호출과 저장 범위를 늘리지 않기로 했다.
 - `/today`의 버튼 상태에 중요한 일 입력칸 두기: 카드 자리는 버튼 하나로 두기로 했다. 중요한 일은 `/setup`에서 적는다.
 - 카드 안쪽 생김새와 예보, 대화, 기억 동작의 변경: 각 Spec의 몫이다.
