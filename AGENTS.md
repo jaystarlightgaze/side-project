@@ -44,3 +44,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 자동 코드 리뷰는 최대 1회, 가장 낮은 강도(`code-review low`)로만 돌린다. 리뷰어를 못 부르면 그 사실만 적고 완료로 본다.
 - 지적 중 스펙의 수용 기준을 깨거나 주 경로가 실제로 깨지는 것만 고친다. 나머지는 `docs/follow-ups/`에 한 줄로 남긴다. 재리뷰는 하지 않는다.
 - 스펙이 요구하지 않은 보안 하드닝·엣지케이스·성능 방어는 범위 밖이다.
+
+# 기술 문서: Vercel AI SDK와 AI Gateway
+
+- AI SDK(`ai`, `@ai-sdk/*`)나 AI Gateway를 쓰는 작업을 시작할 때 공식 문서 `https://ai-sdk.dev/llms.txt`와 `https://vercel.com/docs/ai-gateway`를 그때 가져와 읽는다. 사본을 저장소에 두지 않는다.
+- 문서 내용은 `package.json`과 `bun.lock`에 설치된 `ai` 버전과 대조하고, 버전이 다르면 설치된 버전을 따른다.
+- 공식 스킬 `vercel/ai@ai-sdk`는 아직 설치하지 못했다(사내 SSL 인증서 문제로 GitHub clone 실패). 설치되면 그 스킬을 우선한다.
