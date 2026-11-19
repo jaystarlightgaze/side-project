@@ -14,6 +14,9 @@ export const forecastInputSchema = z.object({
 
 export type ForecastItem = GradedItem & { key: string; title: string; text: string };
 
+/** What the user confided about an earlier forecast, carried into today's forecast and chat. */
+export type ForecastMemory = { date: string; grade: string; answer: string };
+
 export type ForecastResult = {
   date: string;
   neighborhood: string;
@@ -24,18 +27,22 @@ export type ForecastResult = {
   alert: { task: string; advice: string } | null;
   tip: string;
   askTiming: string;
+  memory: ForecastMemory | null;
 };
 
 export function todayInSeoul(now = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(now);
 }
 
-export async function createForecast(input: z.infer<typeof forecastInputSchema>): Promise<ForecastResult> {
+export async function createForecast(
+  input: z.infer<typeof forecastInputSchema>,
+  memory: ForecastMemory | null = null,
+): Promise<ForecastResult> {
   const neighborhood = findNeighborhood(input.neighborhood)!;
   const today = todayInSeoul();
   const weather = await fetchCommuteWeather(neighborhood);
   const graded = gradeForecast(input, weather, today);
-  const copy = await writeForecastCopy(graded);
+  const copy = await writeForecastCopy(graded, memory);
 
   return {
     date: today,
@@ -52,5 +59,6 @@ export async function createForecast(input: z.infer<typeof forecastInputSchema>)
     alert: graded.alert ? { task: graded.alert, advice: copy.alertAdvice ?? "" } : null,
     tip: copy.tip,
     askTiming: copy.askTiming,
+    memory,
   };
 }

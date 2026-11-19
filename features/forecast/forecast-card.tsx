@@ -13,7 +13,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
+import { formatKoreanDate } from "./chat-context";
 import type { ForecastResult } from "./create-forecast";
+
+function summarize(text: string, max = 60): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  return flat.length > max ? `${flat.slice(0, max)}…` : flat;
+}
 
 function weatherIcon(code: number, precipitation: number): { icon: Icon; label: string } {
   if (code >= 95) return { icon: CloudLightningIcon, label: "뇌우" };
@@ -100,6 +106,19 @@ export function ForecastCard({ forecast }: { forecast: ForecastResult }) {
             <dd data-testid="ask-timing" className="text-muted-foreground">{forecast.askTiming}</dd>
           </div>
         </dl>
+
+        {forecast.memory && (
+          <>
+            <Separator />
+            <p data-testid="memory" className="text-sm">
+              <span className="font-medium">지난 기억 · </span>
+              <span className="text-muted-foreground">
+                {formatKoreanDate(forecast.memory.date)} &lsquo;{forecast.memory.grade}&rsquo; 예보 때 &ldquo;
+                {summarize(forecast.memory.answer)}&rdquo;
+              </span>
+            </p>
+          </>
+        )}
       </CardContent>
 
       <CardFooter>

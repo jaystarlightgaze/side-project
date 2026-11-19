@@ -1,6 +1,7 @@
 import { generateText, Output } from "ai";
 import { z } from "zod";
 
+import type { ForecastMemory } from "./create-forecast";
 import type { GradedForecast } from "./rules";
 
 export const FORECAST_MODEL = process.env.FORECAST_MODEL ?? "google/gemini-2.5-flash-lite";
@@ -36,7 +37,7 @@ const SYSTEM = `너는 '직장 기상청'의 예보관이다. 회사원에게 �
 - 재미로 보는 예보다. 실제 예언이나 전문 상담인 척하지 않는다.
 - 매번 새로운 표현을 쓴다.`;
 
-export function buildPrompt(graded: GradedForecast, styleHint: string): string {
+export function buildPrompt(graded: GradedForecast, styleHint: string, memory: ForecastMemory | null = null): string {
   const { items } = graded;
   return [
     `오늘의 말투: ${styleHint}`,
@@ -46,15 +47,23 @@ export function buildPrompt(graded: GradedForecast, styleHint: string): string {
     `회의 강수확률: 등급 "${items.meeting.grade}", 사실: ${items.meeting.facts}`,
     `과열 지수: 등급 "${items.overheat.grade}", 사실: ${items.overheat.facts}`,
     graded.alert ? `오늘의 특보(사용자가 적은 중요한 일): ${graded.alert}` : "오늘의 특보: 없음 (alertAdvice는 null)",
-  ].join("\n");
+    memory
+      ? `지난 기억: ${memory.date} '${memory.grade}' 예보에 대해 사용자가 털어놓은 실제 결과는 "${memory.answer}". 헤드라인이나 행동 요령에서 이 일을 자연스럽게 이어 언급해도 된다.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
-export async function writeForecastCopy(graded: GradedForecast): Promise<ForecastCopy> {
+export async function writeForecastCopy(
+  graded: GradedForecast,
+  memory: ForecastMemory | null = null,
+): Promise<ForecastCopy> {
   const styleHint = STYLE_HINTS[Math.floor(Math.random() * STYLE_HINTS.length)];
   const { output } = await generateText({
     model: FORECAST_MODEL,
     system: SYSTEM,
-    prompt: buildPrompt(graded, styleHint),
+    prompt: buildPrompt(graded, styleHint, memory),
     output: Output.object({ schema: copySchema }),
     abortSignal: AbortSignal.timeout(9000),
   });

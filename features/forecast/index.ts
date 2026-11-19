@@ -1,2 +1,7 @@
 // Client-facing public API of the forecast feature.
-export { ForecastApp } from "./forecast-app";
+export { describeForecastForChat, formatKoreanDate, shouldSuggestChat } from "./chat-context";
+export type { ForecastMemory, ForecastResult } from "./create-forecast";
+export { ForecastCard } from "./forecast-card";
+export { ForecastForm } from "./forecast-form";
+export type { ForecastInput } from "./rules";
+export { EMPTY_INPUT, parseSavedInput, saveInput, STORAGE_KEY } from "./storage";
