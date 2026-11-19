@@ -3,7 +3,18 @@
 import { createContext, useContext, useState, useSyncExternalStore, type ReactNode } from "react";
 
 import type { ChatMessage } from "@/features/chat";
-import { parseSavedInput, saveInput, STORAGE_KEY, type ForecastInput } from "@/features/forecast";
+import {
+  clearChecks,
+  forecastSignature,
+  parseSavedChecks,
+  parseSavedInput,
+  readChecksRaw,
+  saveChecks,
+  saveInput,
+  STORAGE_KEY,
+  subscribeChecks,
+  type ForecastInput,
+} from "@/features/forecast";
 
 import type { HomeSession } from "./session";
 
@@ -56,7 +67,13 @@ export function ForecastFlowProvider({ account, children }: { account: AccountSt
     account?.today ? { status: "success", session: account.today, key: 0 } : { status: "idle" },
   );
   const [messages, setMessages] = useState<ChatMessage[]>(account?.today?.messages ?? []);
-  const [checked, setChecked] = useState<boolean[]>([]);
+  // Checks live in this browser, keyed to the forecast they were made on (see features/forecast/checks.ts).
+  const savedChecks = useSyncExternalStore(subscribeChecks, readChecksRaw, () => null);
+  const signature = state.status === "success" ? forecastSignature(state.session.forecast) : null;
+  const checked = signature ? parseSavedChecks(savedChecks, signature) : [];
+  const setChecked = (next: boolean[]) => {
+    if (signature) saveChecks(signature, next);
+  };
 
   const input =
     lastInput ?? (account ? account.input : saved === undefined ? undefined : saved === null ? null : parseSavedInput(saved));
@@ -67,7 +84,7 @@ export function ForecastFlowProvider({ account, children }: { account: AccountSt
     setLastInput(next);
     setState({ status: "loading" });
     setMessages([]);
-    setChecked([]);
+    clearChecks();
     try {
       const res = await fetch("/api/forecast", {
         method: "POST",
