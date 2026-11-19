@@ -12,7 +12,7 @@ export async function AccountHeader() {
   return (
     <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 pt-5 sm:px-6">
       <Link href="/" className="font-heading text-lg font-semibold tracking-tight">
-        직장 기상청
+        운수 좋은 출근길
       </Link>
       {configured &&
         (signedIn ? (

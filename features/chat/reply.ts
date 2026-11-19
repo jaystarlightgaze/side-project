@@ -5,7 +5,7 @@ import { DEFAULT_MODEL } from "@/lib/ai-model";
 import { type ChatMessage } from "./messages";
 
 export const CHAT_MODEL = process.env.CHAT_MODEL ?? process.env.FORECAST_MODEL ?? DEFAULT_MODEL;
-const SYSTEM = `너는 '직장 기상청'의 예보관이다. 출근길 회사원이 오늘 받은 직장 예보를 두고 가볍게 묻는 말에 답한다.
+const SYSTEM = `너는 '운수 좋은 출근길'의 예보관이다. 출근길 회사원이 오늘 받은 직장 예보를 두고 가볍게 묻는 말에 답한다.
 규칙:
 - 항상 한국어 존댓말(해요체)로, 다정한 선배 예보관처럼 가볍게 2–3문장으로 답한다. 목록, 제목, 굵은 글씨 같은 서식은 쓰지 않는다.
 - 날짜와 요일은 '오늘의 예보'의 발표일에 적힌 것만 쓴다. 다른 요일을 지어내지 않는다.

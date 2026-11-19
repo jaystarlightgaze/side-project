@@ -104,7 +104,7 @@ export function ForecastCard({
           <span aria-hidden className="font-hanja text-[13px] font-extrabold tracking-[0.4em] text-hot">
             職 場 命 式
           </span>
-          <h2 className="text-[22px] leading-snug">오늘의 직장 명식</h2>
+          <h2 className="text-[22px] leading-snug">오늘의 운수</h2>
           <p className="text-xs text-ink-soft">{header}</p>
           <LuckStamp luck={forecast.luck} />
         </header>

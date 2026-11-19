@@ -28,7 +28,7 @@ const renderCard = (overrides: Partial<ForecastResult> = {}) =>
 test("머리에 날짜·동네·생일, 운 지수 도장, 실제 기온과 강수확률, 총평, 끝줄이 있다 (AC1)", () => {
   renderCard();
   const card = screen.getByLabelText("오늘의 직장 예보");
-  expect(card).toHaveTextContent("오늘의 직장 명식");
+  expect(card).toHaveTextContent("오늘의 운수");
   expect(card).toHaveTextContent("1994년 3월 27일생 · 11월 19일 목요일 · 성남(판교)");
   expect(screen.getByLabelText("오늘의 운 지수 47")).toBeInTheDocument();
   expect(screen.getByTestId("temperature")).toHaveTextContent("3°C");

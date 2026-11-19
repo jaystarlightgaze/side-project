@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "직장 기상청",
+  title: "운수 좋은 출근길",
   description: "출근 전 30초, 오늘의 직장 예보와 처신 요령",
 };
 

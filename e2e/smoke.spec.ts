@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-test("처음 온 사람은 /에서 /setup으로 가고, 직장 기상청 헤더와 단계 표시, 예보 보기 버튼이 보인다", async ({ page }) => {
+test("처음 온 사람은 /에서 /setup으로 가고, 운수 좋은 출근길 헤더와 단계 표시, 예보 보기 버튼이 보인다", async ({ page }) => {
   await page.goto("/");
 
   await expect(page).toHaveURL(/\/setup$/);
-  await expect(page).toHaveTitle("직장 기상청");
-  await expect(page.getByRole("link", { name: "직장 기상청" })).toBeVisible();
+  await expect(page).toHaveTitle("운수 좋은 출근길");
+  await expect(page.getByRole("link", { name: "운수 좋은 출근길" })).toBeVisible();
   await expect(page.getByRole("list", { name: "단계" })).toContainText("① 명식 재료");
   await expect(page.getByRole("button", { name: "예보 보기" })).toBeVisible();
 });
