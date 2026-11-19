@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { writeForecastCopy } from "./luna";
+import { writeForecastCopy } from "./forecast-copy";
 import { applyLuckAdjustment, gradeForecast, type CommuteWeather, type GradedItem } from "./rules";
 import { fetchCommuteWeather, findNeighborhood } from "./weather";
 

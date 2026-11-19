@@ -133,7 +133,7 @@ export function gradeForecast(input: ForecastInput, weather: CommuteWeather, tod
   };
 }
 
-/** Luna may move the base luck by ±10; the result always stays an integer in 0–100. */
+/** The model may move the base luck by ±10; the result always stays an integer in 0–100. */
 export function applyLuckAdjustment(baseLuck: number, adjustment: number): number {
   const safe = clamp(Number.isFinite(adjustment) ? adjustment : 0, -MAX_ADJUSTMENT, MAX_ADJUSTMENT);
   return Math.round(clamp(baseLuck + safe, 0, 100));

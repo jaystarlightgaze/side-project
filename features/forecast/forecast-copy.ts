@@ -3,9 +3,9 @@ import { z } from "zod";
 
 import type { GradedForecast } from "./rules";
 
-export const LUNA_MODEL = process.env.LUNA_MODEL ?? "openai/gpt-5.6-luna";
+export const FORECAST_MODEL = process.env.FORECAST_MODEL ?? "google/gemini-2.5-flash-lite";
 
-const lunaSchema = z.object({
+const copySchema = z.object({
   luckAdjustment: z.number().describe("기준 운 지수에 더할 정수 조정값, -10부터 10 사이"),
   headline: z.string().describe("오늘 예보 전체를 한 문장으로 요약한 기상청 말투 헤드라인"),
   commute: z.string().describe("출근길 날씨 예보 문구 1–2문장"),
@@ -17,7 +17,7 @@ const lunaSchema = z.object({
   askTiming: z.string().describe("부탁하기 좋은 타이밍 1개. 구체적인 시간대를 포함한 1–2문장"),
 });
 
-export type LunaCopy = z.infer<typeof lunaSchema>;
+export type ForecastCopy = z.infer<typeof copySchema>;
 
 const STYLE_HINTS = [
   "뉴스 앵커처럼 차분하게",
@@ -49,13 +49,13 @@ export function buildPrompt(graded: GradedForecast, styleHint: string): string {
   ].join("\n");
 }
 
-export async function writeForecastCopy(graded: GradedForecast): Promise<LunaCopy> {
+export async function writeForecastCopy(graded: GradedForecast): Promise<ForecastCopy> {
   const styleHint = STYLE_HINTS[Math.floor(Math.random() * STYLE_HINTS.length)];
   const { output } = await generateText({
-    model: LUNA_MODEL,
+    model: FORECAST_MODEL,
     system: SYSTEM,
     prompt: buildPrompt(graded, styleHint),
-    output: Output.object({ schema: lunaSchema }),
+    output: Output.object({ schema: copySchema }),
     abortSignal: AbortSignal.timeout(9000),
   });
   return output;
