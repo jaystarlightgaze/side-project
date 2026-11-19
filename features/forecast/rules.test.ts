@@ -15,7 +15,9 @@ function input(overrides: Partial<ForecastInput> = {}): ForecastInput {
     birthday: "1990-05-15",
     neighborhood: "seoul",
     meetingDays: [],
-    claudeUsage: 5,
+    leaveTime: "normal",
+    sleepHours: 7,
+    weeklyClaudeUsage: null,
     importantTask: "",
     ...overrides,
   };
@@ -25,14 +27,55 @@ function input(overrides: Partial<ForecastInput> = {}): ForecastInput {
 const thursday = "2026-11-19";
 
 describe("과열 지수 (AC4)", () => {
-  test("사용량 최대면 폭염주의보", () => {
-    const result = gradeForecast(input({ claudeUsage: 10 }), mildWeather, thursday);
-    expect(result.items.overheat.grade).toBe("폭염주의보");
+  const grade = (overrides: Partial<ForecastInput>) =>
+    gradeForecast(input(overrides), mildWeather, thursday).items.overheat.grade;
+
+  test("막차와 수면 4시간이면 Claude 사용량을 비워도 폭염주의보", () => {
+    expect(grade({ leaveTime: "last", sleepHours: 4, weeklyClaudeUsage: null })).toBe("폭염주의보");
   });
 
-  test("사용량 최소면 폭염주의보가 아니다", () => {
-    const result = gradeForecast(input({ claudeUsage: 0 }), mildWeather, thursday);
-    expect(result.items.overheat.grade).not.toBe("폭염주의보");
+  test("칼퇴와 수면 8시간이면 쾌적", () => {
+    expect(grade({ leaveTime: "early", sleepHours: 8 })).toBe("쾌적");
+  });
+
+  test("야근과 수면 5시간이면 더위 주의, Claude 사용량 100%를 더하면 폭염주의보", () => {
+    expect(grade({ leaveTime: "late", sleepHours: 5 })).toBe("더위 주의");
+    expect(grade({ leaveTime: "late", sleepHours: 5, weeklyClaudeUsage: 100 })).toBe("폭염주의보");
+  });
+
+  test("Claude 사용량을 비우면 점수에 넣지 않고, 0%와 같다", () => {
+    expect(grade({ leaveTime: "last", sleepHours: 6, weeklyClaudeUsage: null })).toBe("더위 주의");
+    expect(grade({ leaveTime: "last", sleepHours: 6, weeklyClaudeUsage: 0 })).toBe("더위 주의");
+    expect(grade({ leaveTime: "last", sleepHours: 6, weeklyClaudeUsage: 80 })).toBe("폭염주의보");
+  });
+
+  test("퇴근 점수 0·1·2·3, 수면 점수 0·1·2·3, 사용량 점수 0·1·2의 경계", () => {
+    // 점수 합이 2면 쾌적, 3이면 더위 주의
+    expect(grade({ leaveTime: "normal", sleepHours: 6 })).toBe("쾌적"); // 1+1
+    expect(grade({ leaveTime: "normal", sleepHours: 5 })).toBe("더위 주의"); // 1+2
+    expect(grade({ leaveTime: "early", sleepHours: 7, weeklyClaudeUsage: 39 })).toBe("쾌적"); // 0+0+0
+    expect(grade({ leaveTime: "early", sleepHours: 7, weeklyClaudeUsage: 40 })).toBe("쾌적"); // 0+0+1
+    expect(grade({ leaveTime: "early", sleepHours: 4, weeklyClaudeUsage: 40 })).toBe("더위 주의"); // 0+3+1
+    // 점수 합이 5면 더위 주의, 6이면 폭염주의보
+    expect(grade({ leaveTime: "late", sleepHours: 4 })).toBe("더위 주의"); // 2+3
+    expect(grade({ leaveTime: "late", sleepHours: 4, weeklyClaudeUsage: 40 })).toBe("폭염주의보"); // 2+3+1
+    expect(grade({ leaveTime: "normal", sleepHours: 4, weeklyClaudeUsage: 79 })).toBe("더위 주의"); // 1+3+1
+  });
+
+  test("예보관에게 넘기는 사실에 세 입력이 담긴다", () => {
+    const { facts } = gradeForecast(
+      input({ leaveTime: "last", sleepHours: 5, weeklyClaudeUsage: 60 }),
+      mildWeather,
+      thursday,
+    ).items.overheat;
+    expect(facts).toContain("막차(22시 이후)");
+    expect(facts).toContain("수면 5시간");
+    expect(facts).toContain("Claude 사용량 60%");
+  });
+
+  test("Claude 사용량을 적지 않았다고 사실에 밝힌다", () => {
+    const { facts } = gradeForecast(input(), mildWeather, thursday).items.overheat;
+    expect(facts).toContain("Claude 사용량은 적지 않음");
   });
 });
 
@@ -91,8 +134,8 @@ describe("결정성과 운 지수 (AC7, 제약)", () => {
   });
 
   test("기준 운 지수는 0–100 정수", () => {
-    for (const usage of [0, 5, 10]) {
-      const { baseLuck } = gradeForecast(input({ claudeUsage: usage }), mildWeather, thursday);
+    for (const sleepHours of [4, 7, 9]) {
+      const { baseLuck } = gradeForecast(input({ sleepHours }), mildWeather, thursday);
       expect(Number.isInteger(baseLuck)).toBe(true);
       expect(baseLuck).toBeGreaterThanOrEqual(0);
       expect(baseLuck).toBeLessThanOrEqual(100);
@@ -100,9 +143,9 @@ describe("결정성과 운 지수 (AC7, 제약)", () => {
   });
 
   test("나쁜 조건이 많을수록 기준 운 지수가 낮다", () => {
-    const good = gradeForecast(input({ claudeUsage: 0 }), mildWeather, thursday);
+    const good = gradeForecast(input({ leaveTime: "early", sleepHours: 9 }), mildWeather, thursday);
     const bad = gradeForecast(
-      input({ claudeUsage: 10, meetingDays: ["thu"] }),
+      input({ leaveTime: "last", sleepHours: 4, meetingDays: ["thu"] }),
       { ...mildWeather, precipitationProbability: 90 },
       thursday,
     );

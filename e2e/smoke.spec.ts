@@ -14,7 +14,7 @@ test("저장된 입력이 있으면 /에서 /today로 가고, 오늘 예보 받�
   await page.addInitScript(() => {
     localStorage.setItem(
       "work-forecast:input:v1",
-      JSON.stringify({ birthday: "1990-05-15", neighborhood: "seoul", meetingDays: [], claudeUsage: 5, importantTask: "" }),
+      JSON.stringify({ birthday: "1990-05-15", neighborhood: "seoul", meetingDays: [], leaveTime: "normal", sleepHours: 7, weeklyClaudeUsage: null, importantTask: "" }),
     );
   });
   await page.goto("/");

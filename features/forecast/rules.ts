@@ -10,13 +10,30 @@ export const WEEKDAYS = [
 
 export type WeekdayId = (typeof WEEKDAYS)[number]["id"];
 
+/** 어제 퇴근 시각 단계와 과열 점수. */
+export const LEAVE_TIMES = [
+  { id: "early", label: "칼퇴", when: "18시 전", score: 0 },
+  { id: "normal", label: "보통", when: "20시 전", score: 1 },
+  { id: "late", label: "야근", when: "22시 전", score: 2 },
+  { id: "last", label: "막차", when: "22시 이후", score: 3 },
+] as const;
+
+export type LeaveTimeId = (typeof LEAVE_TIMES)[number]["id"];
+
+export const SLEEP_MIN = 4;
+export const SLEEP_MAX = 9;
+
 export type ForecastInput = {
   /** YYYY-MM-DD */
   birthday: string;
   neighborhood: string;
   meetingDays: WeekdayId[];
-  /** 0–10 */
-  claudeUsage: number;
+  /** 어제 퇴근 시각 */
+  leaveTime: LeaveTimeId;
+  /** 어젯밤 수면 시간, 4–9 */
+  sleepHours: number;
+  /** 이번 주 Claude 사용량 0–100%. null이면 적지 않은 것이라 점수에 반영하지 않는다. */
+  weeklyClaudeUsage: number | null;
   importantTask: string;
 };
 
@@ -104,10 +121,31 @@ function gradeMeeting(meetingDays: WeekdayId[], today: string): GradedItem {
   return { grade: "회의 없음", level: 0, facts: "오늘 회의 루틴이 없음" };
 }
 
-function gradeOverheat(usage: number): GradedItem {
-  const facts = `어제 Claude 사용량 ${usage}/10`;
-  if (usage >= 8) return { grade: "폭염주의보", level: 2, facts: `머리가 과열됨, ${facts}` };
-  if (usage >= 4) return { grade: "더위 주의", level: 1, facts: `머리가 조금 달아오름, ${facts}` };
+function sleepScore(hours: number): number {
+  if (hours >= 7) return 0;
+  if (hours >= 6) return 1;
+  if (hours >= 5) return 2;
+  return 3;
+}
+
+function usageScore(percent: number): number {
+  if (percent >= 80) return 2;
+  if (percent >= 40) return 1;
+  return 0;
+}
+
+/** 세 입력의 점수 합(0–8)으로 정한다. 0–2 쾌적, 3–5 더위 주의, 6 이상 폭염주의보. */
+function gradeOverheat({ leaveTime, sleepHours, weeklyClaudeUsage }: ForecastInput): GradedItem {
+  const leave = LEAVE_TIMES.find((t) => t.id === leaveTime) ?? LEAVE_TIMES[1];
+  const score =
+    leave.score + sleepScore(sleepHours) + (weeklyClaudeUsage === null ? 0 : usageScore(weeklyClaudeUsage));
+  const facts = [
+    `어제 퇴근 ${leave.label}(${leave.when})`,
+    `어젯밤 수면 ${sleepHours}시간`,
+    weeklyClaudeUsage === null ? "이번 주 Claude 사용량은 적지 않음" : `이번 주 Claude 사용량 ${weeklyClaudeUsage}%`,
+  ].join(", ");
+  if (score >= 6) return { grade: "폭염주의보", level: 2, facts: `머리가 과열됨, ${facts}` };
+  if (score >= 3) return { grade: "더위 주의", level: 1, facts: `머리가 조금 달아오름, ${facts}` };
   return { grade: "쾌적", level: 0, facts: `머리가 식어 있음, ${facts}` };
 }
 
@@ -117,7 +155,7 @@ export function gradeForecast(input: ForecastInput, weather: CommuteWeather, tod
     commute: gradeCommute(weather),
     pressure: gradePressure(input.birthday, today),
     meeting: gradeMeeting(input.meetingDays, today),
-    overheat: gradeOverheat(input.claudeUsage),
+    overheat: gradeOverheat(input),
   };
   const penalty = Object.values(items).reduce((sum, item) => sum + LUCK_PENALTY[item.level], 0);
   const alert = input.importantTask.trim();

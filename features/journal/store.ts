@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { ForecastInput, ForecastMemory, ForecastResult } from "@/features/forecast/server";
+import { normalizeInput, type ForecastInput, type ForecastMemory, type ForecastResult } from "@/features/forecast/server";
 
 import { daysBefore, MEMORY_WINDOW_DAYS, pickRecallGrade, recallQuestion } from "./recall";
 
@@ -19,7 +19,7 @@ export type TodaySession = {
 export async function loadInput(supabase: SupabaseClient): Promise<ForecastInput | null> {
   const { data, error } = await supabase.from("forecast_inputs").select("input").maybeSingle();
   if (error) throw error;
-  return (data?.input as ForecastInput | undefined) ?? null;
+  return data ? normalizeInput(data.input) : null;
 }
 
 export async function saveInput(supabase: SupabaseClient, userId: string, input: ForecastInput) {

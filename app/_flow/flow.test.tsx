@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { useSyncExternalStore } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
-import type { ForecastResult } from "@/features/forecast";
+import type { ForecastInput, ForecastResult } from "@/features/forecast";
 import { STORAGE_KEY } from "@/features/forecast";
 
 import { ChatView } from "./chat-view";
@@ -65,11 +65,13 @@ function renderFlow(path: string, account: AccountState = null) {
   );
 }
 
-const savedInput = {
+const savedInput: ForecastInput = {
   birthday: "1990-05-15",
   neighborhood: "seoul",
   meetingDays: ["thu"],
-  claudeUsage: 10,
+  leaveTime: "last",
+  sleepHours: 5,
+  weeklyClaudeUsage: 60,
   importantTask: "휴가 결재",
 };
 
@@ -145,8 +147,23 @@ test("/setup에는 단계 표시가 있고, 저장된 입력값이 채워지되 
   expect(screen.getByRole("list", { name: "단계" })).toHaveTextContent("① 명식 재료›② 오늘 명식›③ 예보관");
   expect(screen.getByLabelText("생일")).toHaveValue("1990-05-15");
   expect(screen.getByRole("checkbox", { name: "목 회의 있음" })).toBeChecked();
-  expect(screen.getByText("어제 Claude 사용량: 10")).toBeInTheDocument();
+  expect(screen.getByRole("combobox", { name: "어제 퇴근 시각" })).toHaveTextContent("막차 (22시 이후)");
+  expect(screen.getByText("어젯밤 수면: 5시간")).toBeInTheDocument();
+  expect(screen.getByLabelText("이번 주 Claude 사용량 (선택)")).toHaveValue(60);
   expect(screen.getByLabelText("오늘의 중요한 일 (선택)")).toHaveValue("");
+});
+
+test("예전에 저장된 입력(claudeUsage)도 오류 없이 새 칸은 기본값으로 채운다", () => {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({ birthday: "1990-05-15", neighborhood: "seoul", meetingDays: [], claudeUsage: 9, importantTask: "" }),
+  );
+  renderFlow("/setup");
+
+  expect(screen.getByLabelText("생일")).toHaveValue("1990-05-15");
+  expect(screen.getByRole("combobox", { name: "어제 퇴근 시각" })).toHaveTextContent("보통 (20시 전)");
+  expect(screen.getByText("어젯밤 수면: 7시간")).toBeInTheDocument();
+  expect(screen.getByLabelText("이번 주 Claude 사용량 (선택)")).toHaveValue(null);
 });
 
 test("필수값이 없으면 요청하지 않고 안내한다", () => {

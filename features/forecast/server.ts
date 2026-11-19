@@ -8,3 +8,4 @@ export {
   type ForecastResult,
 } from "./create-forecast";
 export type { ForecastInput } from "./rules";
+export { normalizeInput } from "./storage";

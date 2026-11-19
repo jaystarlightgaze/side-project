@@ -9,7 +9,9 @@ export const forecastInputSchema = z.object({
   birthday: z.iso.date(),
   neighborhood: z.string().refine((id) => findNeighborhood(id) !== undefined),
   meetingDays: z.array(z.enum(["mon", "tue", "wed", "thu", "fri"])),
-  claudeUsage: z.number().int().min(0).max(10),
+  leaveTime: z.enum(["early", "normal", "late", "last"]),
+  sleepHours: z.number().int().min(4).max(9),
+  weeklyClaudeUsage: z.number().int().min(0).max(100).nullable(),
   importantTask: z.string().max(100),
 });
 

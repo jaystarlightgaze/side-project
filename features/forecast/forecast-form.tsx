@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 
-import { WEEKDAYS, type ForecastInput, type WeekdayId } from "./rules";
+import { LEAVE_TIMES, SLEEP_MAX, SLEEP_MIN, WEEKDAYS, type ForecastInput, type WeekdayId } from "./rules";
 import { NEIGHBORHOODS } from "./weather";
 
 import { cn } from "@/lib/utils";
@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 const FIELD = "h-10.5 rounded-[14px] border-[1.5px] border-hot-line bg-white";
 
 const neighborhoodItems = NEIGHBORHOODS.map((n) => ({ value: n.id, label: n.label }));
+const leaveItems = LEAVE_TIMES.map((t) => ({ value: t.id, label: `${t.label} (${t.when})` }));
 
 type Props = {
   initialInput: ForecastInput;
@@ -139,21 +140,68 @@ export function ForecastForm({ initialInput, pending, onSubmit }: Props) {
           </div>
         </FieldSet>
 
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field>
+            <FieldLabel htmlFor="leave-time">어제 퇴근 시각</FieldLabel>
+            <Select
+              items={leaveItems}
+              value={input.leaveTime}
+              onValueChange={(value) => value && update({ leaveTime: value })}
+            >
+              <SelectTrigger id="leave-time" className={cn(FIELD, "w-full")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {leaveItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="sleep-hours">어젯밤 수면: {input.sleepHours}시간</FieldLabel>
+            <Slider
+              id="sleep-hours"
+              aria-label="어젯밤 수면 시간"
+              min={SLEEP_MIN}
+              max={SLEEP_MAX}
+              step={1}
+              value={[input.sleepHours]}
+              onValueChange={(value) => update({ sleepHours: Array.isArray(value) ? value[0] : value })}
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{SLEEP_MIN}시간 이하</span>
+              <span>{SLEEP_MAX}시간</span>
+            </div>
+          </Field>
+        </div>
+
         <Field>
-          <FieldLabel htmlFor="claude-usage">어제 Claude 사용량: {input.claudeUsage}</FieldLabel>
-          <Slider
-            id="claude-usage"
-            aria-label="어제 Claude 사용량"
-            min={0}
-            max={10}
-            step={1}
-            value={[input.claudeUsage]}
-            onValueChange={(value) => update({ claudeUsage: Array.isArray(value) ? value[0] : value })}
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>안 씀</span>
-            <span>하루 종일</span>
+          <FieldLabel htmlFor="weekly-claude-usage">이번 주 Claude 사용량 (선택)</FieldLabel>
+          <div className="flex items-center gap-2">
+            <Input
+              id="weekly-claude-usage"
+              className={cn(FIELD, "w-28")}
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={100}
+              step={1}
+              value={input.weeklyClaudeUsage ?? ""}
+              placeholder="예: 60"
+              onChange={(e) =>
+                update({
+                  weeklyClaudeUsage:
+                    e.target.value === "" ? null : Math.min(100, Math.max(0, Math.round(Number(e.target.value)))),
+                })
+              }
+            />
+            <span className="text-sm text-ink-soft">%</span>
           </div>
+          <FieldDescription>Claude 설정의 사용량 화면에서 본 값을 적어요. 비우면 점수에 넣지 않아요.</FieldDescription>
         </Field>
 
         <Field>
