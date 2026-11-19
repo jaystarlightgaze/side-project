@@ -1,0 +1,508 @@
+<!--
+  prototype shell: the review chrome every prototype starts from.
+
+  Keep this comment in the prototype you grow from here: it is the contract,
+  and later turns work from that file rather than from this one.
+
+  Contract (extend product screens; keep the review shell):
+  - Product:  .sh-stage contains only end-user product UI. Keep review notes,
+               rationale, instructions, and approval controls in conversation.
+  - Screens:  <section data-screen="slug" data-title="Label"> inside .sh-stage.
+               The selector, arrow keys, and #hash routing build themselves.
+               Use one option per product destination or distinct surface,
+               named by its product role. Keep baselines, variants, comparison
+               labels, steps, indexes, and progress out of names and states.
+               Links may use href="#slug".
+  - States:   "Default" is automatic. A screen declares only representative
+               presets in data-states="Empty,Error". Use natural, screen-specific
+               names. Reserve presets for important multi-step results, forced
+               data or errors, or materially different structure; keep one-click
+               and transient states as interactions. Use data-when="Empty" on
+               preset-only elements. Call prototypeShell.setState("Name") on
+               entry and setState("Default") on exit, including when repeated
+               actions cross a preset condition.
+  - Viewport: "vp (m)" cycles full / 390 / 768. The 390 preset is a
+               fixed-height, internally scrolling phone frame. Start a
+               mobile-first prototype by adding class="sh-vp-390" to <body>
+               (or a bootstrap classList.add before the chrome script runs).
+  - Pinning:  keep in-frame bars (tab bars, CTAs) inside the phone with
+               position: sticky; position: fixed pins to the browser window.
+  - Tokens:   replace the project-tokens block with project tokens copied
+               verbatim. Map differing names to --background, --foreground, and
+               --font afterwards; replace network fonts with a system stack and
+               note that substitution. Without a design system, keep this
+               palette as the finished style. When the project ships dark
+               tokens, copy them under .sh-theme-dark, which the shell sets
+               on both the root element and body, so :root.sh-theme-dark and
+               body.sh-theme-dark work too. A .dark class or a
+               prefers-color-scheme media query copied verbatim would follow
+               the reviewer's system instead of the toggle.
+  - Theme:    the light / dark switch (t) changes the product surface only.
+               It appears only when a .sh-theme-dark rule declares dark tokens,
+               so a prototype without them carries no theme control. Prototypes
+               always load light; the review bar keeps its own dark styling in
+               both themes so it still reads as chrome.
+  - Placeholders: .wf-pic stands in for pictures the prototype has no real
+               files for. Use real text everywhere text belongs.
+
+  - Chrome:   Keep exactly the screen selector, selected-screen state selector,
+               viewport cycle, and theme toggle.
+
+  Self-contained by design: no build, no framework, no network.
+-->
+<meta charset="utf-8">
+<title>직장 기상청 · 꼬마 명식표 프로토타입</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* ── project tokens: copied verbatim from app/globals.css; network fonts (Oxanium, Geist) replaced with a system stack ── */
+  :root {
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.147 0.004 49.25);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.147 0.004 49.25);
+  --primary: oklch(0.508 0.118 165.612);
+  --primary-foreground: oklch(0.979 0.021 166.113);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.97 0.001 106.424);
+  --muted-foreground: oklch(0.553 0.013 58.071);
+  --accent: oklch(0.97 0.001 106.424);
+  --accent-foreground: oklch(0.216 0.006 56.043);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.923 0.003 48.717);
+  --input: oklch(0.923 0.003 48.717);
+  --ring: oklch(0.709 0.01 56.259);
+  --chart-1: oklch(0.865 0.127 207.078);
+  --chart-2: oklch(0.715 0.143 215.221);
+  --chart-3: oklch(0.609 0.126 221.723);
+  --chart-4: oklch(0.52 0.105 223.128);
+  --chart-5: oklch(0.45 0.085 224.283);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0.001 106.423);
+  --sidebar-foreground: oklch(0.147 0.004 49.25);
+  --sidebar-primary: oklch(0.596 0.145 163.225);
+  --sidebar-primary-foreground: oklch(0.979 0.021 166.113);
+  --sidebar-accent: oklch(0.97 0.001 106.424);
+  --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
+  --sidebar-border: oklch(0.923 0.003 48.717);
+  --sidebar-ring: oklch(0.709 0.01 56.259);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.147 0.004 49.25);
+    --font: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  .sh-theme-dark {
+  --background: oklch(0.147 0.004 49.25);
+  --foreground: oklch(0.985 0.001 106.423);
+  --card: oklch(0.216 0.006 56.043);
+  --card-foreground: oklch(0.985 0.001 106.423);
+  --popover: oklch(0.216 0.006 56.043);
+  --popover-foreground: oklch(0.985 0.001 106.423);
+  --primary: oklch(0.432 0.095 166.913);
+  --primary-foreground: oklch(0.979 0.021 166.113);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.268 0.007 34.298);
+  --muted-foreground: oklch(0.709 0.01 56.259);
+  --accent: oklch(0.268 0.007 34.298);
+  --accent-foreground: oklch(0.985 0.001 106.423);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.553 0.013 58.071);
+  --chart-1: oklch(0.865 0.127 207.078);
+  --chart-2: oklch(0.715 0.143 215.221);
+  --chart-3: oklch(0.609 0.126 221.723);
+  --chart-4: oklch(0.52 0.105 223.128);
+  --chart-5: oklch(0.45 0.085 224.283);
+  --sidebar: oklch(0.216 0.006 56.043);
+  --sidebar-foreground: oklch(0.985 0.001 106.423);
+  --sidebar-primary: oklch(0.696 0.17 162.48);
+  --sidebar-primary-foreground: oklch(0.262 0.051 172.552);
+  --sidebar-accent: oklch(0.268 0.007 34.298);
+  --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.553 0.013 58.071);
+  }
+
+  /* ── review chrome (sh-*): keep; extend product styles elsewhere ── */
+  * { box-sizing: border-box }
+  body {
+    margin: 0; padding: 0 0 40px;
+    background: var(--background, #f6f6f6); color: var(--foreground, #3a3a3a);
+    font-family: var(--font, system-ui, sans-serif);
+  }
+  .sh-bar {
+    position: sticky; top: 0; z-index: 999;
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    padding: 8px 12px; background: #191a1c; color: #d7d7d7;
+    font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .sh-bar b, .sh-control-label { color: #8a8f98; font-weight: 500 }
+  .sh-control { display: inline-flex; gap: 5px; align-items: center }
+  .sh-bar button {
+    border: 1px solid #3a3d42; background: none; color: inherit;
+    font: inherit; padding: 2px 9px; border-radius: 99px; cursor: pointer;
+  }
+  .sh-bar select {
+    width: 170px; border: 1px solid #3a3d42; background: #232428; color: inherit;
+    font: inherit; padding: 3px 28px 3px 9px; border-radius: 7px; cursor: pointer;
+    color-scheme: dark;
+  }
+  #sh-screen { width: 190px }
+  .sh-bar button.on { background: #d7d7d7; color: #191a1c; border-color: #d7d7d7 }
+  .sh-theme { display: inline-flex; border: 1px solid #3a3d42; border-radius: 99px; overflow: hidden }
+  .sh-theme button { border: 0; border-radius: 0; padding: 2px 10px }
+  .sh-spacer { flex: 1 }
+  .sh-stage { max-width: 960px; margin: 0 auto; padding: 12px 16px 0 }
+  [hidden] { display: none !important }
+
+  /* viewport presets */
+  .sh-vp-390 .sh-stage {
+    max-width: 390px; background: var(--background, #f6f6f6);
+    border: 10px solid #191a1c; border-radius: 28px;
+    padding: 16px 12px; height: min(844px, calc(100dvh - 52px));
+    overflow-y: auto; margin-top: 12px;
+  }
+  .sh-vp-768 .sh-stage {
+    max-width: 768px; border: 1px solid #c4c4c4; border-radius: 12px;
+    padding: 16px; margin-top: 12px;
+  }
+
+  /* placeholders */
+  .wf-pic  { border-radius: 4px; background:
+             repeating-linear-gradient(45deg, #e9e9e9, #e9e9e9 6px, #f2f2f2 6px, #f2f2f2 12px) }
+  .sh-theme-dark .wf-pic { background: repeating-linear-gradient(45deg,
+             color-mix(in srgb, var(--foreground) 16%, transparent) 0 6px,
+             color-mix(in srgb, var(--foreground) 8%, transparent) 6px 12px) }
+  /* ───────── product styles ───────── */
+  .sh-stage { container-type: inline-size }
+  .p { font-size: 14px; line-height: 1.55 }
+  .p h1, .p h2, .p h3, .p h4, .p p { margin: 0 }
+  .num { font-variant-numeric: tabular-nums }
+  .stack { display: flex; flex-direction: column; gap: 14px }
+  .dc { display: contents }
+  .btn { appearance: none; border: 0; height: 46px; padding: 0 18px; font: 800 15px var(--font); cursor: pointer; border-radius: 99px; width: 100% }
+  .btn[disabled] { opacity: .65; cursor: progress }
+  .btn-outline { background: #fff !important; color: var(--ink) !important; border: 1.5px solid var(--line2) }
+  .btn-link { background: none; border: 0; padding: 0; font: 600 13px var(--font); color: inherit; text-decoration: underline; cursor: pointer }
+  .field { display: flex; flex-direction: column; gap: 6px }
+  .field > label, .legend { font-size: 13px; font-weight: 800 }
+  .input { height: 42px; border: 1.5px solid var(--line2); border-radius: 14px; padding: 0 12px; font: 14px var(--font); background: #fff; color: inherit; width: 100% }
+  .days { display: flex; flex-wrap: wrap; gap: 6px }
+  .days label { display: inline-flex; gap: 4px; align-items: center; font-size: 13px; padding: 6px 11px; border: 1.5px solid var(--line2); border-radius: 99px; cursor: pointer; background: #fff }
+  .days input, input[type=range] { accent-color: var(--hot) }
+  .days input { margin: 0 }
+  input[type=range] { width: 100% }
+  .hint { display: flex; justify-content: space-between; font-size: 12px; opacity: .7 }
+  .spin { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -3px }
+  @keyframes spin { to { transform: rotate(360deg) } }
+  @keyframes bob { 50% { transform: translateY(-6px) } }
+  @keyframes wiggle { 0%,100% { transform: rotate(-6deg) } 50% { transform: rotate(4deg) } }
+  .grid2 { display: grid; gap: 12px; grid-template-columns: minmax(0,1fr) }
+  @container (min-width: 640px) { .grid2 { grid-template-columns: minmax(0,1fr) minmax(0,1fr) } .grid2 .wide { grid-column: 1 / -1 } }
+
+  /* 파스텔 오행 팔레트 */
+  .cute { --ink: #3b3346; --soft: #8a7f96; --hot: #ff7d96; --line2: #f0dccf;
+          --water: #cfe3ff; --water-i: #3d6fb8; --earth: #ffe7b8; --earth-i: #b07a1e;
+          --wood: #cdeedd; --wood-i: #2f8a5c; --fire: #ffd3dc; --fire-i: #e0466a;
+          color: var(--ink); font-family: "Jua", "Cafe24 Ssurround", var(--font) }
+  .cute .soft { color: var(--soft) }
+  .cute .btn { background: var(--ink); color: #fff }
+
+  .pillars { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px }
+  .pillar { border-radius: 999px 999px 22px 22px; padding: 12px 4px 10px; text-align: center; display: grid; gap: 2px; justify-items: center; box-shadow: inset 0 -4px 0 rgba(0,0,0,.05) }
+  .pillar .lab { font-size: 11px; font-weight: 800; opacity: .75 }
+  .pillar .ch { font-family: "Nanum Myeongjo", "Batang", serif; font-size: 38px; font-weight: 800; line-height: 1.1; animation: bob 2.4s ease-in-out infinite }
+  .pillar:nth-child(2) .ch { animation-delay: .3s } .pillar:nth-child(3) .ch { animation-delay: .6s } .pillar:nth-child(4) .ch { animation-delay: .9s }
+  .pillar .face { font-size: 16px; line-height: 1 }
+  .pillar .g { font-size: 11px; font-weight: 800; background: rgba(255,255,255,.8); border-radius: 99px; padding: 1px 7px; margin-top: 4px; line-height: 1.25; max-width: 100%; word-break: keep-all }
+  .pillar.water { background: var(--water) } .pillar.water .ch { color: var(--water-i) }
+  .pillar.earth { background: var(--earth) } .pillar.earth .ch { color: var(--earth-i) }
+  .pillar.wood  { background: var(--wood) }  .pillar.wood .ch  { color: var(--wood-i) }
+  .pillar.fire  { background: var(--fire) }  .pillar.fire .ch  { color: var(--fire-i) }
+  .pillar.hot .g { background: var(--hot); color: #fff }
+  @container (min-width: 640px) { .pillar .ch { font-size: 46px } }
+
+  .stamp { width: 64px; height: 64px; flex: none; border-radius: 50%; border: 3px dashed var(--hot); color: var(--hot); background: #fff;
+           display: grid; place-items: center; text-align: center; line-height: 1; transform: rotate(-8deg); animation: wiggle 3s ease-in-out infinite }
+  .stamp small { font-family: "Nanum Myeongjo", "Batang", serif; font-size: 12px; font-weight: 800; display: block }
+  .stamp b { font-size: 20px }
+
+  .todo { display: grid; gap: 8px }
+  .todo label { display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; cursor: pointer; padding: 9px 10px; border-radius: 16px; background: #fff }
+  .todo input { appearance: none; width: 22px; height: 22px; border: 2px solid #f1c9d3; border-radius: 8px; margin: 1px 0 0; display: grid; place-items: center; background: #fff; cursor: pointer }
+  .todo input:checked { background: var(--hot); border-color: var(--hot) }
+  .todo input:checked::after { content: "✓"; color: #fff; font-size: 14px; font-weight: 900 }
+  .todo input:checked + span { text-decoration: line-through; opacity: .5 }
+  .tag { display: inline-block; font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 99px; margin-right: 4px; background: #efe8ff }
+  .done-msg { font-size: 12px; color: var(--hot); text-align: center; min-height: 18px }
+
+  .m2 { --paper: #fff3f0; border-radius: 28px; padding: 22px 16px; display: grid; gap: 16px; grid-template-columns: minmax(0,1fr);
+        background: var(--paper); background-image: radial-gradient(#f6d9d2 1px, transparent 1.5px); background-size: 14px 14px;
+        border: 2px dashed #f2c3c9 }
+  .m2-head { text-align: center; display: grid; gap: 4px; justify-items: center; position: relative }
+  .m2-head .t { font-family: "Nanum Myeongjo", "Batang", serif; font-size: 13px; font-weight: 800; letter-spacing: .4em; color: var(--hot) }
+  .m2-head h2 { font-size: 22px }
+  .m2-head .stamp { position: absolute; right: -2px; top: -6px }
+  @container (max-width: 639px) { .m2-head { padding: 0 50px } .m2-head .stamp { width: 52px; height: 52px; right: -6px } .m2-head .stamp b { font-size: 16px } }
+  .m2-chart { background: #fff; border-radius: 26px; padding: 14px 12px; border: 2px solid #f6dede; display: grid; gap: 12px }
+  .m2-chart .cap { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--soft) }
+  .m2-sum { text-align: center; font-size: 16px; font-weight: 800; padding: 10px 12px; border-radius: 18px; background: #fff7d6 }
+  .m2-sum small { display: block; font-size: 11px; color: #b3761a; letter-spacing: .2em }
+  .m2-read { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px }
+  .m2-read div { border-radius: 18px; padding: 10px 12px; font-size: 12px; display: grid; gap: 2px; align-content: start }
+  .m2-read b { font-size: 13px }
+  .m2-memory { display: flex; gap: 10px; align-items: start; background: #fff; border: 1.5px dashed #cdbff5; border-radius: 18px; padding: 10px 12px; font-size: 13px }
+  .m2-memory .ic { font-size: 20px; line-height: 1 }
+  .m2-memory b { color: #6d4fd0 }
+  .m2-charm { background: #ffe98a; border-radius: 10px; padding: 16px 14px 14px; position: relative; border: 2px solid #f2b13b; box-shadow: 0 4px 0 #f0c65a; transform: rotate(.6deg) }
+  .m2-charm::before { content: "符"; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 30px; height: 30px; border-radius: 50%;
+                      background: var(--hot); color: #fff; display: grid; place-items: center; font-family: "Nanum Myeongjo", "Batang", serif; font-weight: 800 }
+  .m2-charm .k { text-align: center; font-size: 12px; font-weight: 800; color: #9a5b00; letter-spacing: .2em }
+  .m2-charm h3 { text-align: center; font-size: 16px; margin: 4px 0 2px }
+  .m2-charm > p { text-align: center; font-size: 13px; margin-bottom: 10px }
+  .m2-charm .todo label { background: rgba(255,255,255,.75) }
+  .m2-plain { background: #fff; border-radius: 22px; border: 2px solid #f6dede; padding: 14px }
+  .m2-plain h3 { font-size: 15px; margin-bottom: 10px }
+  .m2-plain .todo label { background: #fff7f5 }
+  .m2-time { display: flex; gap: 12px; align-items: center; background: #efe8ff; border-radius: 20px; padding: 12px 14px }
+  .m2-time .h { font-family: "Nanum Myeongjo", "Batang", serif; font-size: 24px; font-weight: 800; color: #6d4fd0; text-align: center; line-height: 1; flex: none }
+  .m2-time .h small { display: block; font-family: var(--font); font-size: 12px; margin-top: 4px }
+  .m2-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--soft) }
+  .m2-load { text-align: center; padding: 24px 0; display: grid; gap: 12px; justify-items: center }
+  .m2-load .yy { font-size: 54px; animation: spin 2.4s linear infinite }
+  .m2-fail { text-align: center; padding: 20px 0; display: grid; gap: 10px; justify-items: center }
+  .m2-fail .cloud { font-size: 48px }
+  @container (min-width: 640px) { .m2 { padding: 32px; grid-template-columns: minmax(0,1.15fr) minmax(0,1fr); column-gap: 24px; align-items: start } .m2 > .wide, .m2 > .dc > .wide { grid-column: 1 / -1 } }
+</style>
+
+<header class="sh-bar">
+  <b>proto</b>
+  <label class="sh-control"><span class="sh-control-label">screen</span><select id="sh-screen"></select></label>
+  <span class="sh-spacer"></span>
+  <label class="sh-control"><span class="sh-control-label">state</span><select id="sh-state"></select></label>
+  <button id="sh-vp">vp: full (m)</button>
+  <div class="sh-theme" id="sh-theme" role="group" aria-label="theme (t)" hidden>
+    <button data-theme="light">light</button><button data-theme="dark">dark</button>
+  </div>
+</header>
+
+<main class="sh-stage">
+
+  <!-- ═════════ 입력 폼 ═════════ -->
+  <section data-screen="input" data-title="명식 세우기 (입력 폼)">
+    <form class="p cute m2" data-component="new:ForecastForm" id="forecast-form">
+      <div class="wide grid2">
+        <div class="wide" style="text-align:center">
+          <p style="font-family:'Nanum Myeongjo','Batang',serif;font-size:13px;font-weight:800;letter-spacing:.4em;color:var(--hot)">職 場 命 式</p>
+          <h2 style="font-size:20px">명식 세우기 전에 알려 주세요 🧧</h2>
+          <p class="soft" style="font-size:13px">어제 넣은 값이 채워져 있어요. 바꿀 것만 바꾸고 눌러요.</p>
+        </div>
+        <div class="field"><label for="f-bd">생일 <span class="soft" style="font-weight:500">(명식을 세워요)</span></label><input id="f-bd" class="input" type="date" value="1994-03-27" data-component="Input"></div>
+        <div class="field"><label for="f-nb">동네</label><select id="f-nb" class="input" data-component="Select"><option>서울</option><option>부산</option><option>인천</option><option>대구</option><option>대전</option><option>광주</option><option>수원</option><option selected>성남(판교)</option></select></div>
+        <fieldset class="field wide" style="border:0;padding:0;margin:0"><span class="legend">요일별 루틴</span>
+          <div class="days" data-component="Checkbox"><label><input type="checkbox" checked>월 회의 있음</label><label><input type="checkbox">화 회의 있음</label><label><input type="checkbox" checked>수 회의 있음</label><label><input type="checkbox" checked>목 회의 있음</label><label><input type="checkbox">금 회의 있음</label></div></fieldset>
+        <div class="field"><label for="f-cl">어제 Claude 사용량: <output>9</output></label><input id="f-cl" type="range" min="0" max="10" value="9" data-component="Slider"><div class="hint"><span>안 씀</span><span>하루 종일</span></div></div>
+        <div class="field"><label for="f-it">오늘의 중요한 일 (선택)</label><input id="f-it" class="input" data-component="Input" value="오후 3시 팀장님께 다음 주 금요일 휴가 결재 받기" placeholder="예: 오후 3시 팀장님께 휴가 결재 받기"></div>
+        <div class="wide"><button class="btn" type="submit" data-component="Button">예보 보기</button></div>
+      </div>
+    </form>
+  </section>
+
+  <!-- ═════════ 예보 카드 ═════════ -->
+  <section data-screen="card" data-title="오늘의 직장 명식 (예보 카드)" data-states="준비 중,실패,특보 없음,지난 기억 있음">
+    <article class="p cute m2" data-component="new:SajuChartCard" aria-label="오늘의 직장 예보">
+      <div class="dc" data-when="Default,특보 없음,지난 기억 있음">
+        <header class="m2-head wide">
+          <span class="t">職 場 命 式</span>
+          <h2>오늘의 직장 명식</h2>
+          <p class="soft" style="font-size:12px">1994년 3월 27일생 · 11월 19일 목요일 · 성남(판교)</p>
+          <div class="stamp" data-component="new:LuckStamp" aria-label="오늘의 운 지수 47"><span><small>運</small><b class="num">47</b></span></div>
+        </header>
+
+        <p class="m2-memory wide" data-when="지난 기억 있음" data-component="new:MemoryLine"><span class="ic">🐾</span><span><b>지난 기억</b> · 11월 18일 ‘회의 주의보’ 예보 때 “회의는 짧게 끝났는데 팀장님 기분이 별로였어요”</span></p>
+
+        <div class="stack">
+          <div class="m2-chart" data-component="Card">
+            <div class="cap"><span>오늘의 네 기둥</span><span>🌧 <b class="num">3°C</b> · 강수확률 <b class="num">60%</b> (7–9시)</span></div>
+            <div class="pillars" data-component="new:FourPillars">
+              <div class="pillar water"><span class="lab">출근길</span><span class="ch">雨</span><span class="face">🌧</span><span class="g" data-component="Badge">비 주의</span></div>
+              <div class="pillar earth"><span class="lab">개인 기압</span><span class="ch">低</span><span class="face">🫧</span><span class="g" data-component="Badge">저기압</span></div>
+              <div class="pillar wood hot"><span class="lab">회의</span><span class="ch">雷</span><span class="face">⚡</span><span class="g" data-component="Badge">소나기 80%</span></div>
+              <div class="pillar fire hot"><span class="lab">과열</span><span class="ch">炎</span><span class="face">🔥</span><span class="g" data-component="Badge">폭염주의보</span></div>
+            </div>
+            <p class="m2-sum" data-when="Default,지난 기억 있음"><small>총 평</small>오전 회의 소나기 뒤 오후 갬.<br>휴가 결재는 해 뜰 때 노리세요.</p>
+            <p class="m2-sum" data-when="특보 없음"><small>총 평</small>오전 회의 소나기 뒤 오후 갬.<br>부탁할 일은 해 뜬 뒤에 꺼내세요.</p>
+          </div>
+          <div class="m2-read">
+            <div style="background:var(--water)"><b>雨 출근길</b>판교역 3번 출구에서 우산 펼칠 각. 7시 50분쯤 빗줄기가 제일 굵어요.</div>
+            <div style="background:var(--earth)"><b>低 개인 기압</b>감정 리듬이 바닥권. 메신저 답장은 한 번 읽고 보내요.</div>
+            <div style="background:var(--wood)"><b>雷 회의</b>주간보고 구름이 10시부터 머물러요. 숫자 질문에 대비해요.</div>
+            <div style="background:var(--fire)"><b>炎 과열</b>어제 Claude 9/10. 점심엔 화면 끄고 걸어요.</div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="m2-charm" data-when="Default,지난 기억 있음" data-component="new:AlertCharm">
+            <p class="k">오늘의 특보 부적</p>
+            <h3>오후 3시 팀장님께<br>다음 주 금요일 휴가 결재 받기</h3>
+            <p>결재 전선이 오후 2시 이후 북상해요. 주간보고가 끝난 뒤 들어가세요.</p>
+            <div class="todo" data-component="Checkbox">
+              <label><input type="checkbox"><span><span class="tag">처신</span>회의 전 자료의 숫자 세 개만 다시 확인하기. 오후엔 기압이 올라와요.</span></label>
+              <label><input type="checkbox"><span><span class="tag" style="background:var(--earth)">길한 시각</span>14:40에 말 꺼내기</span></label>
+              <label><input type="checkbox"><span><span class="tag" style="background:var(--fire)">특보</span>15:00 휴가 결재 받기</span></label>
+            </div>
+            <p class="done-msg" aria-live="polite"></p>
+          </div>
+          <div class="m2-plain" data-when="특보 없음" data-component="Card">
+            <h3>오늘 할 일 ✏️</h3>
+            <div class="todo" data-component="Checkbox">
+              <label><input type="checkbox"><span><span class="tag">처신</span>회의 전 자료의 숫자 세 개만 다시 확인하기. 오후엔 기압이 올라와요.</span></label>
+              <label><input type="checkbox"><span><span class="tag" style="background:var(--earth)">길한 시각</span>14:40에 부탁할 말 꺼내기</span></label>
+            </div>
+            <p class="done-msg" aria-live="polite"></p>
+          </div>
+          <div class="m2-time">
+            <div class="h">未時<small>14:40</small></div>
+            <div><p style="font-size:12px;font-weight:800;color:#6d4fd0">말 꺼내기 길한 시각</p><p>주간보고가 끝나고 팀장님이 커피를 들고 자리로 돌아온 직후.</p></div>
+          </div>
+          <div class="m2-foot"><span>재미로 보는 예보입니다.</span><button class="btn-link" type="button" data-act="edit">명식 다시 세우기</button></div>
+        </div>
+      </div>
+
+      <div class="m2-load wide" data-when="준비 중" role="status" aria-busy="true">
+        <div class="yy">☯</div>
+        <p><strong>꼬마 명식을 세우는 중이에요</strong></p>
+        <p class="soft" style="font-size:13px">생일이랑 판교 하늘, 목요일 회의 기운을 맞춰 보고 있어요.</p>
+        <button class="btn" disabled style="max-width:300px"><span class="spin"></span> 예보 준비 중</button>
+      </div>
+
+      <div class="m2-fail wide" data-when="실패" role="alert" data-component="Alert">
+        <div class="cloud">🌫</div>
+        <p><strong>명식을 세우지 못했어요</strong></p>
+        <p class="soft" style="font-size:13px">기상 관측소와 연결이 잠시 끊겼어요. 잠시 후 다시 시도해 주세요.</p>
+        <button class="btn btn-outline" type="button" id="retry" style="max-width:240px">다시 시도</button>
+      </div>
+    </article>
+  </section>
+
+</main>
+
+<script>
+  // product interactions
+  function runForecast() {
+    prototypeShell.showScreen('card');
+    prototypeShell.setState('준비 중');
+    setTimeout(() => prototypeShell.setState('Default'), 1400);
+  }
+  document.getElementById('forecast-form').addEventListener('submit', e => { e.preventDefault(); runForecast(); });
+  document.getElementById('retry').onclick = runForecast;
+  document.querySelectorAll('[data-act=edit]').forEach(b => b.onclick = () => prototypeShell.showScreen('input'));
+  document.querySelectorAll('input[type=range]').forEach(r => r.oninput = () => {
+    r.closest('.field').querySelector('output').textContent = r.value;
+  });
+  // 할 일을 모두 체크하면 다독임 한 줄
+  document.querySelectorAll('.todo').forEach(list => {
+    const msg = list.parentElement.querySelector('.done-msg');
+    list.addEventListener('change', () => {
+      const boxes = [...list.querySelectorAll('input')];
+      const n = boxes.filter(b => b.checked).length;
+      msg.textContent = n === boxes.length ? '오늘 할 일 끝! 퇴근길은 맑음이에요 ☀️' : n ? `${n}/${boxes.length} 완료, 기압이 올라가는 중 🌤` : '';
+    });
+  });
+</script>
+
+<script>
+  const stage = document.querySelector('.sh-stage');
+  const screens = [...stage.querySelectorAll('[data-screen]')];
+  const screenSelect = document.getElementById('sh-screen');
+  const stateSelect = document.getElementById('sh-state');
+  const vpBtn = document.getElementById('sh-vp');
+  const themeCtl = document.getElementById('sh-theme');
+  const themeBtns = [...themeCtl.querySelectorAll('button')];
+  let current = null;
+  let currentStates = [];
+
+  screens.forEach(s => {
+    const option = document.createElement('option');
+    option.textContent = s.dataset.title || s.dataset.screen;
+    option.value = s.dataset.screen;
+    screenSelect.append(option);
+  });
+  screenSelect.onchange = () => show(screenSelect.value);
+
+  function show(slug) {
+    current = screens.find(s => s.dataset.screen === slug) || screens[0];
+    screens.forEach(s => s.hidden = s !== current);
+    screenSelect.value = current.dataset.screen;
+    history.replaceState(null, '', '#' + current.dataset.screen);
+    buildStates();
+  }
+
+  function buildStates() {
+    const declared = (current.dataset.states || '').split(',').map(x => x.trim()).filter(Boolean);
+    currentStates = ['Default', ...declared.filter(name => name !== 'Default')];
+    stateSelect.innerHTML = '';
+    currentStates.forEach(name => {
+      const option = document.createElement('option');
+      option.textContent = name;
+      option.value = name;
+      stateSelect.append(option);
+    });
+    applyState('Default');
+  }
+
+  function applyState(name) {
+    const active = currentStates.includes(name) ? name : 'Default';
+    current.querySelectorAll('[data-when]').forEach(el => {
+      el.hidden = !el.dataset.when.split(',').map(x => x.trim()).includes(active);
+    });
+    stateSelect.value = active;
+  }
+  stateSelect.onchange = () => applyState(stateSelect.value);
+
+  window.prototypeShell = {
+    showScreen: show,
+    setState: applyState,
+    getScreen: () => current?.dataset.screen,
+    getState: () => stateSelect.value
+  };
+
+  const VPS = ['full', '390', '768'];
+  let vp = VPS.find(v => document.body.classList.contains('sh-vp-' + v)) || 'full';
+  function applyVp() {
+    VPS.forEach(v => document.body.classList.toggle('sh-vp-' + v, v === vp && v !== 'full'));
+    vpBtn.textContent = 'vp: ' + vp + ' (m)';
+    vpBtn.classList.toggle('on', vp !== 'full');
+  }
+  vpBtn.onclick = () => { vp = VPS[(VPS.indexOf(vp) + 1) % VPS.length]; applyVp(); };
+  applyVp();
+
+  const hasDark = [...document.styleSheets].some(sheet => {
+    try {
+      return [...sheet.cssRules].some(rule => (rule.selectorText || '')
+        .split(',').some(part => /\.sh-theme-dark$/.test(part.trim())));
+    } catch { return false }
+  });
+  let dark = false;
+  function applyTheme() {
+    document.documentElement.classList.toggle('sh-theme-dark', dark);
+    document.body.classList.toggle('sh-theme-dark', dark);
+    themeBtns.forEach(b => b.classList.toggle('on', (b.dataset.theme === 'dark') === dark));
+  }
+  themeCtl.hidden = !hasDark;
+  themeBtns.forEach(b => b.onclick = () => { dark = b.dataset.theme === 'dark'; applyTheme(); });
+  applyTheme();
+
+  addEventListener('keydown', e => {
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const i = screens.indexOf(current);
+    if (e.key === 'ArrowRight') show(screens[(i + 1) % screens.length].dataset.screen);
+    if (e.key === 'ArrowLeft') show(screens[(i - 1 + screens.length) % screens.length].dataset.screen);
+    if (e.key === 'm') vpBtn.click();
+    if (e.key === 't' && !themeCtl.hidden) { dark = !dark; applyTheme(); }
+  });
+
+  addEventListener('hashchange', () => show(location.hash.slice(1)));
+  show(location.hash.slice(1));
+</script>
