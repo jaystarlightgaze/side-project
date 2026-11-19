@@ -101,6 +101,13 @@ function weekdayOf(today: string): WeekdayId | null {
   return WEEKDAYS[day - 1]?.id ?? null;
 }
 
+const KOREAN_WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"] as const;
+
+/** "2026-11-19" → "목요일" */
+export function koreanWeekday(iso: string): string {
+  return `${KOREAN_WEEKDAYS[new Date(Date.UTC(...isoParts(iso))).getUTCDay()]}요일`;
+}
+
 function gradeMeeting(meetingDays: WeekdayId[], today: string): GradedItem {
   const weekday = weekdayOf(today);
   if (weekday && meetingDays.includes(weekday)) {

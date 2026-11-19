@@ -1,4 +1,5 @@
 import type { ForecastResult } from "./create-forecast";
+import { koreanWeekday } from "./rules";
 
 /** "2026-11-18" → "11월 18일" */
 export function formatKoreanDate(iso: string): string {
@@ -14,7 +15,7 @@ export function shouldSuggestChat(forecast: Pick<ForecastResult, "alert" | "luck
 /** Plain-text summary of today's forecast that the forecaster keeps in mind while chatting. */
 export function describeForecastForChat(forecast: ForecastResult): string {
   return [
-    `발표일: ${forecast.date}, 동네: ${forecast.neighborhood}`,
+    `발표일: ${forecast.date} ${koreanWeekday(forecast.date)}, 동네: ${forecast.neighborhood}`,
     `출근길 실제 날씨: 8시 기온 ${forecast.weather.temperature}°C, 7–9시 강수확률 ${forecast.weather.precipitationProbability}%`,
     `오늘의 운 지수: ${forecast.luck}/100`,
     `헤드라인: ${forecast.headline}`,

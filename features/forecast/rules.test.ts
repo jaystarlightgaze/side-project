@@ -3,6 +3,7 @@ import { describe, expect, test } from "vitest";
 import {
   applyLuckAdjustment,
   gradeForecast,
+  koreanWeekday,
   type CommuteWeather,
   type ForecastInput,
 } from "./rules";
@@ -129,5 +130,13 @@ describe("운 지수 조정 클램프", () => {
     expect(applyLuckAdjustment(95, 10)).toBe(100);
     expect(applyLuckAdjustment(3, -10)).toBe(0);
     expect(applyLuckAdjustment(50, 2.6)).toBe(53);
+  });
+});
+
+describe("koreanWeekday", () => {
+  test("names the weekday of a Seoul date so the copy cannot guess it", () => {
+    expect(koreanWeekday("2026-11-19")).toBe("목요일");
+    expect(koreanWeekday("2026-11-16")).toBe("월요일");
+    expect(koreanWeekday("2026-11-22")).toBe("일요일");
   });
 });

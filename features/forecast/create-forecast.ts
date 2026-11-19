@@ -42,7 +42,7 @@ export async function createForecast(
   const today = todayInSeoul();
   const weather = await fetchCommuteWeather(neighborhood);
   const graded = gradeForecast(input, weather, today);
-  const copy = await writeForecastCopy(graded, memory);
+  const copy = await writeForecastCopy(graded, today, memory);
 
   return {
     date: today,
