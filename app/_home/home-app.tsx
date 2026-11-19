@@ -1,11 +1,10 @@
 "use client";
 
-import { ChatCircleDotsIcon, WarningIcon } from "@phosphor-icons/react";
+import { ChatCircleDotsIcon } from "@phosphor-icons/react";
 import { useState, useSyncExternalStore } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChatPanel, type ChatMessage } from "@/features/chat";
 import {
@@ -75,26 +74,34 @@ export function HomeApp({ account = null }: { account?: AccountState }) {
 
       <section aria-live="polite" className="flex flex-col gap-6">
         {state.status === "loading" && (
-          <Card aria-busy="true">
-            <CardHeader>
-              <p className="text-sm font-medium">예보관이 오늘의 직장 기상을 분석하고 있습니다…</p>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <Skeleton className="h-10 w-1/2" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-            </CardContent>
-          </Card>
+          <div
+            role="status"
+            aria-busy="true"
+            className="paper grid justify-items-center gap-3 rounded-[28px] border-2 border-dashed border-paper-line px-4 py-10 text-center font-cute"
+          >
+            <span aria-hidden className="text-[54px] leading-none motion-safe:animate-spin-slow">☯</span>
+            <p className="font-extrabold">꼬마 명식을 세우는 중이에요</p>
+            <p className="text-[13px] text-ink-soft">생일이랑 동네 하늘, 오늘 회의 기운을 맞춰 보고 있어요.</p>
+          </div>
         )}
-        {state.status === "success" && <ForecastSession key={state.key} session={state.session} />}
+        {state.status === "success" && (
+          <ForecastSession
+            key={state.key}
+            session={state.session}
+            birthday={(lastInput ?? initialInput).birthday || undefined}
+          />
+        )}
         {state.status === "error" && (
-          <Alert variant="destructive">
-            <WarningIcon />
-            <AlertTitle>예보를 받지 못했습니다</AlertTitle>
-            <AlertDescription className="flex flex-col items-start gap-3">
+          <Alert className="paper bg-paper after:hidden grid justify-items-center gap-2.5 rounded-[28px] border-2 border-dashed border-paper-line px-4 py-8 text-center font-cute *:data-[slot=alert-description]:text-ink-soft">
+            <span aria-hidden className="text-5xl leading-none">🌫</span>
+            <AlertTitle className="font-extrabold">명식을 세우지 못했어요</AlertTitle>
+            <AlertDescription className="flex flex-col items-center gap-3 text-[13px]">
               <span>기상 관측소와 연결이 잠시 끊겼어요. 잠시 후 다시 시도해 주세요.</span>
-              <Button variant="outline" onClick={() => lastInput && requestForecast(lastInput)}>
+              <Button
+                variant="outline"
+                className="h-11 w-full max-w-60 rounded-full border-[1.5px] border-hot-line bg-white font-extrabold tracking-normal normal-case text-ink"
+                onClick={() => lastInput && requestForecast(lastInput)}
+              >
                 다시 시도
               </Button>
             </AlertDescription>
@@ -105,7 +112,14 @@ export function HomeApp({ account = null }: { account?: AccountState }) {
   );
 }
 
-function ForecastSession({ session }: { session: HomeSession }) {
+/** "명식 다시 세우기": the form sits above the card on this page, so take the user back to it. */
+function rebuild() {
+  const form = document.getElementById("forecast-form");
+  form?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById("birthday")?.focus({ preventScroll: true });
+}
+
+function ForecastSession({ session, birthday }: { session: HomeSession; birthday?: string }) {
   const { forecast, forecastId, recallPending } = session;
   const extraBody = (history: ChatMessage[]) => ({
     forecastId,
@@ -114,7 +128,7 @@ function ForecastSession({ session }: { session: HomeSession }) {
 
   return (
     <>
-      <ForecastCard forecast={forecast} />
+      <ForecastCard forecast={forecast} birthday={birthday} onRebuild={rebuild} />
       {shouldSuggestChat(forecast) && (
         <p data-testid="chat-suggestion" className="flex items-center gap-2 text-sm font-medium">
           <ChatCircleDotsIcon className="size-5 shrink-0" aria-hidden />

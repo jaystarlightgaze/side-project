@@ -20,6 +20,11 @@ import { Slider } from "@/components/ui/slider";
 import { WEEKDAYS, type ForecastInput, type WeekdayId } from "./rules";
 import { NEIGHBORHOODS } from "./weather";
 
+import { cn } from "@/lib/utils";
+
+/** Rounded white inputs on the paper surface. */
+const FIELD = "h-10.5 rounded-[14px] border-[1.5px] border-hot-line bg-white";
+
 const neighborhoodItems = NEIGHBORHOODS.map((n) => ({ value: n.id, label: n.label }));
 
 type Props = {
@@ -54,13 +59,27 @@ export function ForecastForm({ initialInput, pending, onSubmit }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <FieldGroup>
-        <div className="grid gap-6 sm:grid-cols-2">
+    <form
+      id="forecast-form"
+      aria-label="명식 세우기"
+      onSubmit={handleSubmit}
+      noValidate
+      className="paper break-keep rounded-[28px] border-2 border-dashed border-paper-line px-4 py-5 font-cute sm:p-8 **:data-[slot=field-label]:normal-case **:data-[slot=field-legend]:normal-case"
+    >
+      <FieldGroup className="gap-5">
+        <div className="text-center">
+          <p aria-hidden className="font-hanja text-[13px] font-extrabold tracking-[0.4em] text-hot">
+            職 場 命 式
+          </p>
+          <h2 className="text-xl">명식 세우기 전에 알려 주세요 🧧</h2>
+          <p className="text-[13px] text-ink-soft">지난번에 넣은 값이 채워져 있어요. 바꿀 것만 바꾸고 눌러요.</p>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2">
           <Field data-invalid={showErrors && missingBirthday}>
             <FieldLabel htmlFor="birthday">생일</FieldLabel>
             <Input
               id="birthday"
+              className={FIELD}
               type="date"
               value={input.birthday}
               max="2020-12-31"
@@ -77,7 +96,7 @@ export function ForecastForm({ initialInput, pending, onSubmit }: Props) {
               value={input.neighborhood === "" ? null : input.neighborhood}
               onValueChange={(value) => update({ neighborhood: value ?? "" })}
             >
-              <SelectTrigger id="neighborhood" className="w-full" aria-invalid={showErrors && missingNeighborhood}>
+              <SelectTrigger id="neighborhood" className={cn(FIELD, "w-full")} aria-invalid={showErrors && missingNeighborhood}>
                 <SelectValue placeholder="동네를 고르세요" />
               </SelectTrigger>
               <SelectContent>
@@ -95,13 +114,18 @@ export function ForecastForm({ initialInput, pending, onSubmit }: Props) {
         <FieldSet>
           <FieldLegend variant="label">요일별 루틴</FieldLegend>
           <FieldDescription>회의가 있는 요일을 체크하세요.</FieldDescription>
-          <div className="flex flex-wrap gap-x-6 gap-y-3">
+          <div className="flex flex-wrap gap-1.5">
             {WEEKDAYS.map((day) => (
-              <Field key={day.id} orientation="horizontal" className="w-auto">
+              <Field
+                key={day.id}
+                orientation="horizontal"
+                className="w-auto gap-1 rounded-full border-[1.5px] border-hot-line bg-white px-3 py-1.5"
+              >
                 <Checkbox
                   id={`meeting-${day.id}`}
                   checked={input.meetingDays.includes(day.id)}
                   onCheckedChange={(checked) => toggleMeeting(day.id, checked)}
+                  className="rounded-md border-hot-line data-checked:border-hot data-checked:bg-hot data-checked:text-white"
                 />
                 <FieldLabel htmlFor={`meeting-${day.id}`} className="font-normal">
                   {day.label} 회의 있음
@@ -132,6 +156,7 @@ export function ForecastForm({ initialInput, pending, onSubmit }: Props) {
           <FieldLabel htmlFor="important-task">오늘의 중요한 일 (선택)</FieldLabel>
           <Input
             id="important-task"
+            className={FIELD}
             value={input.importantTask}
             maxLength={100}
             placeholder="예: 오후 3시 팀장님께 휴가 결재 받기"
@@ -139,7 +164,12 @@ export function ForecastForm({ initialInput, pending, onSubmit }: Props) {
           />
         </Field>
 
-        <Button type="submit" size="lg" disabled={pending} className="w-full sm:w-auto sm:self-start">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={pending}
+          className="h-12 w-full rounded-full bg-ink text-[15px] font-extrabold tracking-normal normal-case text-white hover:bg-ink/90"
+        >
           {pending ? "예보 준비 중…" : "예보 보기"}
         </Button>
       </FieldGroup>

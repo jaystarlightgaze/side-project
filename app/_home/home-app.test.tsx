@@ -74,7 +74,7 @@ test("준비 중에는 버튼을 누를 수 없고, 응답이 오면 카드가 �
   fireEvent.click(screen.getByRole("button", { name: "예보 보기" }));
   const pending = await screen.findByRole("button", { name: "예보 준비 중…" });
   expect(pending).toBeDisabled();
-  expect(screen.getByText(/분석하고 있습니다/)).toBeInTheDocument();
+  expect(screen.getByText("꼬마 명식을 세우는 중이에요")).toBeInTheDocument();
   fireEvent.click(pending);
   expect(fetchMock).toHaveBeenCalledTimes(1);
 
@@ -114,7 +114,7 @@ test("실패하면 실패 안내와 다시 시도 버튼이 보이고, 다시 �
   render(<Home />);
 
   fireEvent.click(screen.getByRole("button", { name: "예보 보기" }));
-  expect(await screen.findByText("예보를 받지 못했습니다")).toBeInTheDocument();
+  expect(await screen.findByText("명식을 세우지 못했어요")).toBeInTheDocument();
   expect(screen.queryByLabelText("오늘의 직장 예보")).not.toBeInTheDocument();
 
   fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));

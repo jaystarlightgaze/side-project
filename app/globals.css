@@ -46,6 +46,52 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Saju chart card ("꼬마 명식표") project tokens */
+  --color-paper: var(--paper);
+  --color-paper-dot: var(--paper-dot);
+  --color-paper-line: var(--paper-line);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-hot: var(--hot);
+  --color-hot-line: var(--hot-line);
+  --color-water: var(--water);
+  --color-water-ink: var(--water-ink);
+  --color-earth: var(--earth);
+  --color-earth-ink: var(--earth-ink);
+  --color-wood: var(--wood);
+  --color-wood-ink: var(--wood-ink);
+  --color-fire: var(--fire);
+  --color-fire-ink: var(--fire-ink);
+  --color-charm: var(--charm);
+  --color-charm-line: var(--charm-line);
+  --color-charm-shadow: var(--charm-shadow);
+  --color-charm-ink: var(--charm-ink);
+  --color-verdict: var(--verdict);
+  --color-verdict-ink: var(--verdict-ink);
+  --color-lilac: var(--lilac);
+  --color-lilac-line: var(--lilac-line);
+  --color-lilac-ink: var(--lilac-ink);
+  --font-cute: "Jua", "Cafe24 Ssurround", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-hanja: "Nanum Myeongjo", "AppleMyungjo", "Batang", serif;
+  --animate-bob: bob 2.4s ease-in-out infinite;
+  --animate-wiggle: wiggle 3s ease-in-out infinite;
+  --animate-spin-slow: spin 2.4s linear infinite;
+
+  @keyframes bob {
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(-6deg);
+    }
+    50% {
+      transform: rotate(4deg);
+    }
+  }
 }
 
 :root {
@@ -81,6 +127,32 @@
   --sidebar-ring: oklch(0.709 0.01 56.259);
   --background: oklch(1 0 0);
   --foreground: oklch(0.147 0.004 49.25);
+
+  /* The saju card keeps its paper tone in dark mode too, so these stay out of .dark. */
+  --paper: #fff3f0;
+  --paper-dot: #f6d9d2;
+  --paper-line: #f2c3c9;
+  --ink: #3b3346;
+  --ink-soft: #8a7f96;
+  --hot: #ff7d96;
+  --hot-line: #f1c9d3;
+  --water: #cfe3ff;
+  --water-ink: #3d6fb8;
+  --earth: #ffe7b8;
+  --earth-ink: #b07a1e;
+  --wood: #cdeedd;
+  --wood-ink: #2f8a5c;
+  --fire: #ffd3dc;
+  --fire-ink: #e0466a;
+  --charm: #ffe98a;
+  --charm-line: #f2b13b;
+  --charm-shadow: #f0c65a;
+  --charm-ink: #9a5b00;
+  --verdict: #fff7d6;
+  --verdict-ink: #b3761a;
+  --lilac: #efe8ff;
+  --lilac-line: #cdbff5;
+  --lilac-ink: #6d4fd0;
 }
 
 .dark {
@@ -127,4 +199,11 @@
   html {
     @apply font-sans;
   }
+}
+
+@utility paper {
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--paper-dot) 1px, transparent 1.5px);
+  background-size: 14px 14px;
+  color: var(--ink);
 }
