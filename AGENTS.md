@@ -50,3 +50,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - AI SDK(`ai`, `@ai-sdk/*`)나 AI Gateway를 쓰는 작업을 시작할 때 공식 문서 `https://ai-sdk.dev/llms.txt`와 `https://vercel.com/docs/ai-gateway`를 그때 가져와 읽는다. 사본을 저장소에 두지 않는다.
 - 문서 내용은 `package.json`과 `bun.lock`에 설치된 `ai` 버전과 대조하고, 버전이 다르면 설치된 버전을 따른다.
 - 공식 스킬 `vercel/ai@ai-sdk`는 아직 설치하지 못했다(사내 SSL 인증서 문제로 GitHub clone 실패). 설치되면 그 스킬을 우선한다.
+
+# 기술 문서: Supabase
+
+- Supabase(Auth, Postgres, `@supabase/ssr`, `@supabase/supabase-js`)를 쓰는 작업을 시작할 때 공식 문서 `https://supabase.com/llms.txt`를 그때 가져와 읽는다. 사본을 저장소에 두지 않는다. 로그인 구성은 프로젝트 로컬 스킬 `setup-supabase`를 따른다.
+- 문서 내용은 `package.json`과 `bun.lock`에 설치된 Supabase 패키지 버전과 대조하고, 버전이 다르면 설치된 버전을 따른다.
+- 공식 스킬 `supabase/agent-skills@supabase`는 아직 설치하지 못했다(사내 SSL 인증서 문제로 GitHub clone 실패). 설치되면 그 스킬을 우선한다.
