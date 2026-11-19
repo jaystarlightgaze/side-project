@@ -7,11 +7,6 @@ export function formatKoreanDate(iso: string): string {
   return `${m}월 ${d}일`;
 }
 
-/** Suggest talking to the forecaster when there is an alert or the luck index is extreme. */
-export function shouldSuggestChat(forecast: Pick<ForecastResult, "alert" | "luck">): boolean {
-  return forecast.alert !== null || forecast.luck <= 30 || forecast.luck >= 80;
-}
-
 /** Plain-text summary of today's forecast that the forecaster keeps in mind while chatting. */
 export function describeForecastForChat(forecast: ForecastResult): string {
   return [

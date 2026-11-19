@@ -1,4 +1,4 @@
-import type { HomeSession } from "@/app/_home/session";
+import type { HomeSession } from "@/app/_flow/session";
 import { createForecast, forecastInputSchema, todayInSeoul } from "@/features/forecast/server";
 import { latestMemory, saveForecast, saveInput } from "@/features/journal/server";
 import { getSignedIn } from "@/lib/supabase/server";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ function formatBirthday(iso: string): string {
   return `${y}년 ${m}월 ${d}일생`;
 }
 
-const PILLARS: Record<string, { hanja: string; label: string; face: string; tone: string; ink: string }> = {
+export const PILLARS: Record<string, { hanja: string; label: string; face: string; tone: string; ink: string }> = {
   commute: { hanja: "雨", label: "출근길", face: "🌧", tone: "bg-water", ink: "text-water-ink" },
   pressure: { hanja: "低", label: "개인 기압", face: "🫧", tone: "bg-earth", ink: "text-earth-ink" },
   meeting: { hanja: "雷", label: "회의", face: "⚡", tone: "bg-wood", ink: "text-wood-ink" },
@@ -41,7 +41,7 @@ const PILLARS: Record<string, { hanja: string; label: string; face: string; tone
 };
 
 /** The worst of the three rule levels gets the accent. */
-const WORST_LEVEL = 2;
+export const WORST_LEVEL = 2;
 
 type Props = {
   forecast: ForecastResult;
@@ -49,9 +49,28 @@ type Props = {
   birthday?: string;
   /** Go back to the input form ("명식 다시 세우기"). */
   onRebuild?: () => void;
+  /** "compact" keeps the head, the four pillars, the verdict and the charm (or to-do box) only. */
+  variant?: "full" | "compact";
+  /** To-do checks kept by the caller. Without it the card keeps its own. */
+  checked?: boolean[];
+  onCheckedChange?: (next: boolean[]) => void;
+  /** Show the checks without letting them change. */
+  readOnly?: boolean;
+  /** A small action placed next to the closing line. */
+  footerAction?: ReactNode;
 };
 
-export function ForecastCard({ forecast, birthday, onRebuild }: Props) {
+export function ForecastCard({
+  forecast,
+  birthday,
+  onRebuild,
+  variant = "full",
+  checked,
+  onCheckedChange,
+  readOnly = false,
+  footerAction,
+}: Props) {
+  const compact = variant === "compact";
   const { weather } = forecast;
   const sky = weatherEmoji(weather.weatherCode, weather.precipitationProbability);
   const hour = askTimingHour(forecast.askTiming);
@@ -75,7 +94,12 @@ export function ForecastCard({ forecast, birthday, onRebuild }: Props) {
 
   return (
     <article aria-label="오늘의 직장 예보" className="@container paper break-keep rounded-[28px] border-2 border-dashed border-paper-line font-cute">
-      <div className="grid grid-cols-1 gap-4 px-4 py-5 @min-[40rem]:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] @min-[40rem]:items-start @min-[40rem]:gap-x-6 @min-[40rem]:p-8">
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-4 px-4 py-5",
+          !compact && "@min-[40rem]:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] @min-[40rem]:items-start @min-[40rem]:gap-x-6 @min-[40rem]:p-8",
+        )}
+      >
         <header className="relative col-span-full grid justify-items-center gap-1 px-12 text-center @min-[40rem]:px-0">
           <span aria-hidden className="font-hanja text-[13px] font-extrabold tracking-[0.4em] text-hot">
             職 場 命 式
@@ -119,7 +143,7 @@ export function ForecastCard({ forecast, birthday, onRebuild }: Props) {
             </p>
           </section>
 
-          <ul aria-label="기둥 풀이" className="grid grid-cols-2 gap-2">
+          {!compact && <ul aria-label="기둥 풀이" className="grid grid-cols-2 gap-2">
             {forecast.items.map((item) => {
               const pillar = PILLARS[item.key];
               return (
@@ -132,7 +156,7 @@ export function ForecastCard({ forecast, birthday, onRebuild }: Props) {
                 </li>
               );
             })}
-          </ul>
+          </ul>}
         </div>
 
         <div className="flex flex-col gap-3.5">
@@ -148,16 +172,16 @@ export function ForecastCard({ forecast, birthday, onRebuild }: Props) {
               <p className="text-center text-xs font-extrabold tracking-[0.2em] text-charm-ink">오늘의 특보 부적</p>
               <h3 className="mt-1 mb-0.5 text-center text-base text-balance">{forecast.alert.task}</h3>
               <p className="mb-2.5 text-center text-[13px]">{forecast.alert.advice}</p>
-              <TodoList todos={todos} rowClassName="bg-white/75" />
+              <TodoList todos={todos} rowClassName="bg-white/75" checked={checked} onCheckedChange={onCheckedChange} readOnly={readOnly} />
             </section>
           ) : (
             <section data-testid="todo" aria-label="오늘 할 일" className="rounded-[22px] border-2 border-fire/60 bg-white p-3.5">
               <h3 className="mb-2.5 text-[15px]">오늘 할 일 ✏️</h3>
-              <TodoList todos={todos} rowClassName="bg-paper" />
+              <TodoList todos={todos} rowClassName="bg-paper" checked={checked} onCheckedChange={onCheckedChange} readOnly={readOnly} />
             </section>
           )}
 
-          <section data-testid="ask-timing" aria-label="부탁하기 좋은 타이밍" className="flex items-center gap-3 rounded-[20px] bg-lilac px-3.5 py-3">
+          {!compact && <section data-testid="ask-timing" aria-label="부탁하기 좋은 타이밍" className="flex items-center gap-3 rounded-[20px] bg-lilac px-3.5 py-3">
             {hour && (
               <div aria-label={`${hour.reading} ${hour.time}`} role="img" className="flex-none text-center font-hanja text-2xl leading-none font-extrabold text-lilac-ink">
                 {hour.hanja}
@@ -168,20 +192,25 @@ export function ForecastCard({ forecast, birthday, onRebuild }: Props) {
               <p className="text-xs font-extrabold text-lilac-ink">말 꺼내기 길한 시각</p>
               <p className="text-sm">{forecast.askTiming}</p>
             </div>
-          </section>
+          </section>}
 
           <p data-testid="tip" className="sr-only">
             행동 요령: {forecast.tip}
           </p>
 
-          <footer className="flex items-center justify-between gap-2 text-xs text-ink-soft">
-            <span>재미로 보는 예보입니다.</span>
-            {onRebuild && (
-              <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs tracking-normal normal-case text-ink-soft" onClick={onRebuild}>
-                명식 다시 세우기
-              </Button>
-            )}
-          </footer>
+          {!compact && (
+            <footer className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-soft">
+              <span>재미로 보는 예보입니다.</span>
+              <span className="flex items-center gap-3">
+                {onRebuild && (
+                  <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs tracking-normal normal-case text-ink-soft" onClick={onRebuild}>
+                    명식 다시 세우기
+                  </Button>
+                )}
+                {footerAction}
+              </span>
+            </footer>
+          )}
         </div>
       </div>
     </article>
@@ -239,9 +268,24 @@ function Pillar({ item, index }: { item: ForecastItem; index: number }) {
 
 type Todo = { tag: string; tone: string; text: string };
 
-function TodoList({ todos, rowClassName }: { todos: Todo[]; rowClassName: string }) {
+type TodoListProps = {
+  todos: Todo[];
+  rowClassName: string;
+  checked?: boolean[];
+  onCheckedChange?: (next: boolean[]) => void;
+  readOnly: boolean;
+};
+
+function TodoList({ todos, rowClassName, checked: controlled, onCheckedChange, readOnly }: TodoListProps) {
   const id = useId();
-  const [checked, setChecked] = useState<boolean[]>(() => todos.map(() => false));
+  const [own, setOwn] = useState<boolean[]>(() => todos.map(() => false));
+  const checked = todos.map((_, index) => (controlled ?? own)[index] ?? false);
+  const toggle = (index: number, value: boolean) => {
+    if (readOnly) return;
+    const next = checked.map((c, i) => (i === index ? value : c));
+    if (controlled) onCheckedChange?.(next);
+    else setOwn(next);
+  };
   const done = checked.filter(Boolean).length;
   const status =
     done === 0 ? "" : done === todos.length ? "오늘 할 일 끝! 퇴근길은 맑음이에요 ☀️" : `${done}/${todos.length} 완료, 기압이 올라가는 중 🌤`;
@@ -254,10 +298,11 @@ function TodoList({ todos, rowClassName }: { todos: Todo[]; rowClassName: string
             <Checkbox
               id={`${id}-${index}`}
               checked={checked[index]}
-              onCheckedChange={(value) => setChecked((prev) => prev.map((c, i) => (i === index ? value : c)))}
+              disabled={readOnly}
+              onCheckedChange={(value) => toggle(index, value)}
               className="mt-px size-5.5 rounded-lg border-2 border-hot-line bg-white data-checked:border-hot data-checked:bg-hot data-checked:text-white"
             />
-            <label htmlFor={`${id}-${index}`} className={cn("cursor-pointer text-sm", checked[index] && "line-through opacity-50")}>
+            <label htmlFor={`${id}-${index}`} className={cn("text-sm", !readOnly && "cursor-pointer", checked[index] && "line-through opacity-50")}>
               <span className={cn("mr-1 inline-block rounded-full px-2 py-px text-[11px] font-extrabold", todo.tone)}>{todo.tag}</span>
               {todo.text}
             </label>

@@ -126,3 +126,45 @@ test("지난 기억은 운 지수 도장 아래, 명식 상자 위에 한 줄로
   expect(stamp.compareDocumentPosition(memory) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(memory.compareDocumentPosition(chart) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
+
+test("줄인 카드는 머리·네 기둥·총평·부적만 있고 기둥 풀이와 길한 시각은 없다 (step-pages-layout AC8)", () => {
+  render(<ForecastCard forecast={base} variant="compact" />);
+  expect(screen.getByLabelText("오늘의 운 지수 47")).toBeInTheDocument();
+  expect(screen.getByTestId("chart")).toBeInTheDocument();
+  expect(screen.getByTestId("headline")).toBeInTheDocument();
+  expect(screen.getByTestId("item-alert")).toBeInTheDocument();
+  expect(screen.queryByLabelText("기둥 풀이")).not.toBeInTheDocument();
+  expect(screen.queryByTestId("ask-timing")).not.toBeInTheDocument();
+});
+
+test("특보가 없으면 줄인 카드에 오늘 할 일 상자가 있다 (step-pages-layout AC8)", () => {
+  render(<ForecastCard forecast={{ ...base, alert: null }} variant="compact" />);
+  expect(screen.getByTestId("todo")).toBeInTheDocument();
+});
+
+test("바깥에서 받은 체크 상태를 비춰 보이고, 바뀌면 알린다 (step-pages-layout AC8)", () => {
+  const changes: boolean[][] = [];
+  render(<ForecastCard forecast={base} checked={[true, false, false]} onCheckedChange={(next) => changes.push(next)} />);
+  const [first, second] = within(screen.getByTestId("item-alert")).getAllByRole("checkbox");
+  expect(first).toBeChecked();
+  expect(screen.getByTestId("todo-status")).toHaveTextContent("1/3 완료");
+  fireEvent.click(second);
+  expect(changes).toEqual([[true, true, false]]);
+});
+
+test("읽기 전용이면 체크를 눌러도 바뀌지 않는다 (step-pages-layout AC8)", () => {
+  const changes: boolean[][] = [];
+  render(
+    <ForecastCard forecast={base} variant="compact" readOnly checked={[true, false, false]} onCheckedChange={(next) => changes.push(next)} />,
+  );
+  const [first, second] = within(screen.getByTestId("item-alert")).getAllByRole("checkbox");
+  fireEvent.click(second);
+  expect(first).toBeChecked();
+  expect(second).not.toBeChecked();
+  expect(changes).toEqual([]);
+});
+
+test("끝줄 옆에 넘겨받은 작은 링크를 둔다 (step-pages-layout AC6)", () => {
+  render(<ForecastCard forecast={base} footerAction={<a href="/today/chat">예보관에게 묻기 →</a>} />);
+  expect(screen.getByRole("link", { name: "예보관에게 묻기 →" })).toBeInTheDocument();
+});

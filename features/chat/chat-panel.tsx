@@ -18,10 +18,17 @@ type Props = {
   initialMessages?: ChatMessage[];
   /** Extra fields sent with each request, computed from the history before the new question. */
   extraBody?: (history: ChatMessage[]) => Record<string, unknown>;
+  /** Called with every change, including answers that keep streaming after the panel is gone. */
+  onMessagesChange?: (messages: ChatMessage[]) => void;
+  className?: string;
 };
 
-export function ChatPanel({ context, initialMessages = [], extraBody }: Props) {
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+export function ChatPanel({ context, initialMessages = [], extraBody, onMessagesChange, className }: Props) {
+  const [messages, setOwnMessages] = useState<ChatMessage[]>(initialMessages);
+  const setMessages = (next: ChatMessage[]) => {
+    setOwnMessages(next);
+    onMessagesChange?.(next);
+  };
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -79,7 +86,7 @@ export function ChatPanel({ context, initialMessages = [], extraBody }: Props) {
   const waitingForFirstToken = pending && messages.at(-1)?.role === "user";
 
   return (
-    <Card aria-label="예보관에게 묻기">
+    <Card aria-label="예보관에게 묻기" className={className}>
       <CardHeader>
         <CardTitle>예보관에게 묻기</CardTitle>
         <CardDescription>오늘 예보를 바탕으로 처신을 물어보세요.</CardDescription>
