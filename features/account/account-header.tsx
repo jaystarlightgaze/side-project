@@ -10,7 +10,8 @@ export async function AccountHeader() {
   const configured = isSupabaseConfigured();
   const signedIn = configured && (await getSignedIn());
   return (
-    <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 pt-5 sm:px-6">
+    // Same width as the page body: 3xl by default, 6xl on pages whose <main> carries `data-wide` (the chat page).
+    <header className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-4 pt-5 sm:px-6 [body:has([data-wide])_&]:max-w-6xl">
       <Link href="/" className="font-heading text-lg font-semibold tracking-tight">
         운수 좋은 출근길
       </Link>

@@ -23,7 +23,7 @@ export function ChatView() {
 
   if (state.status !== "success") {
     return (
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
+      <main data-wide className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
         <Skeleton className="h-96 w-full" />
       </main>
     );
@@ -36,7 +36,7 @@ export function ChatView() {
   });
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 py-6 sm:px-6">
+    <main data-wide className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 py-6 sm:px-6">
       <h1 className="sr-only">예보관에게 묻기</h1>
       <Link href="/today" className="self-start text-sm text-muted-foreground underline-offset-4 hover:underline">
         ← 오늘 명식
