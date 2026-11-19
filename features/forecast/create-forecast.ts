@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { writeForecastCopy } from "./forecast-copy";
 import { applyLuckAdjustment, gradeForecast, type CommuteWeather, type GradedItem } from "./rules";
+import type { SajuToday } from "./saju";
 import { fetchCommuteWeather, findNeighborhood } from "./weather";
 
 export const forecastInputSchema = z.object({
@@ -28,6 +29,8 @@ export type ForecastResult = {
   tip: string;
   askTiming: string;
   memory: ForecastMemory | null;
+  /** Today's saju reading. Missing on forecasts saved before saju was added. */
+  saju?: SajuToday;
 };
 
 export function todayInSeoul(now = new Date()): string {
@@ -60,5 +63,6 @@ export async function createForecast(
     tip: copy.tip,
     askTiming: copy.askTiming,
     memory,
+    saju: graded.saju,
   };
 }

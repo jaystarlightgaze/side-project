@@ -16,6 +16,9 @@ export function describeForecastForChat(forecast: ForecastResult): string {
     `헤드라인: ${forecast.headline}`,
     ...forecast.items.map((item) => `${item.title}: 등급 "${item.grade}" — ${item.text}`),
     forecast.alert ? `오늘의 특보(사용자가 적은 중요한 일): ${forecast.alert.task} — ${forecast.alert.advice}` : "오늘의 특보: 없음",
+    forecast.saju
+      ? `사주: 일간 ${forecast.saju.dayMaster}, 오늘 일진 ${forecast.saju.todayPillar}, 관계 ${forecast.saju.relation}${forecast.saju.clash ? ", 일지 충" : ""}, 부족한 오행 ${forecast.saju.lacking}, 좋은 시간대 ${forecast.saju.goodHours.join("·")}, 피할 일 ${forecast.saju.avoid}`
+      : "",
     `행동 요령: ${forecast.tip}`,
     `부탁하기 좋은 타이밍: ${forecast.askTiming}`,
     forecast.memory

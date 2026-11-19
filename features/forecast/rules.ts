@@ -1,3 +1,5 @@
+import { readSaju, sajuPressure, type SajuToday } from "./saju";
+
 export const WEEKDAYS = [
   { id: "mon", label: "월" },
   { id: "tue", label: "화" },
@@ -44,6 +46,7 @@ export type GradedForecast = {
     overheat: GradedItem;
   };
   alert: string | null;
+  saju: SajuToday;
 };
 
 const LUCK_START = 75;
@@ -72,28 +75,13 @@ function gradeCommute(weather: CommuteWeather): GradedItem {
   return { grade: "출근길 쾌청", level: 0, facts: `맑고 온화함(${temp}, ${rain})` };
 }
 
-function daysBetween(fromIso: string, toIso: string): number {
-  const from = Date.UTC(...isoParts(fromIso));
-  const to = Date.UTC(...isoParts(toIso));
-  return Math.round((to - from) / 86_400_000);
-}
-
 function isoParts(iso: string): [number, number, number] {
   const [y, m, d] = iso.split("-").map(Number);
   return [y, m - 1, d];
 }
 
 function gradePressure(birthday: string, today: string): GradedItem {
-  const days = daysBetween(birthday, today);
-  const cycle = (period: number) => Math.sin((2 * Math.PI * days) / period);
-  const physical = cycle(23);
-  const emotional = cycle(28);
-  const intellectual = cycle(33);
-  const sum = physical + emotional + intellectual;
-  const facts = `바이오리듬 합계 ${sum.toFixed(2)} (신체 ${physical.toFixed(2)}, 감정 ${emotional.toFixed(2)}, 지성 ${intellectual.toFixed(2)})`;
-  if (sum >= 1) return { grade: "고기압", level: 0, facts: `컨디션 좋음, ${facts}` };
-  if (sum <= -1) return { grade: "저기압", level: 2, facts: `컨디션 가라앉음, ${facts}` };
-  return { grade: "기압 보통", level: 1, facts: `컨디션 보통, ${facts}` };
+  return sajuPressure(readSaju(birthday, today));
 }
 
 function weekdayOf(today: string): WeekdayId | null {
@@ -136,6 +124,7 @@ export function gradeForecast(input: ForecastInput, weather: CommuteWeather, tod
   return {
     baseLuck: clamp(LUCK_START - penalty + (items.pressure.level === 0 ? 15 : 0), 0, 100),
     items,
+    saju: readSaju(input.birthday, today),
     alert: alert === "" ? null : alert,
   };
 }
