@@ -72,7 +72,11 @@ export function ForecastForm({ initialInput, pending, onSubmit }: Props) {
             職 場 命 式
           </p>
           <h2 className="text-xl">명식 세우기 전에 알려 주세요 🧧</h2>
-          <p className="text-[13px] text-ink-soft">지난번에 넣은 값이 채워져 있어요. 바꿀 것만 바꾸고 눌러요.</p>
+          <p className="text-[13px] text-ink-soft">
+            {initialInput.birthday === ""
+              ? "생일과 동네만 있으면 돼요. 나머지는 알려 줄 때만 채워요."
+              : "지난번에 넣은 값이 채워져 있어요. 바꿀 것만 바꾸고 눌러요."}
+          </p>
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <Field data-invalid={showErrors && missingBirthday}>
